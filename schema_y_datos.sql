@@ -90,6 +90,18 @@ CREATE TABLE IF NOT EXISTS parametros_evaluacion (
     FOREIGN KEY (solicitud_id) REFERENCES solicitud_credito(id_solicitud)
 );
 
+-- Tabla de Historial de Estados de Solicitud
+CREATE TABLE IF NOT EXISTS historial_estado_solicitud (
+    id_historial INT AUTO_INCREMENT PRIMARY KEY,
+    solicitud_id INT NOT NULL,
+    fecha_cambio DATETIME DEFAULT CURRENT_TIMESTAMP,
+    estado_anterior VARCHAR(30) NULL,
+    estado_nuevo VARCHAR(30) NOT NULL,
+    evento VARCHAR(50) NOT NULL,
+    observacion VARCHAR(500) NULL,
+    FOREIGN KEY (solicitud_id) REFERENCES solicitud_credito(id_solicitud)
+);
+
 -- Tabla de Cronograma de Pagos
 CREATE TABLE IF NOT EXISTS cronograma_pagos (
     id_cronograma INT AUTO_INCREMENT PRIMARY KEY,
@@ -270,6 +282,24 @@ INSERT INTO solicitud_credito (id_solicitud, codigo_solicitud, cliente_id, anali
 (8, 'SOL-1700000008', 8, 1, NULL, 2200.00, 12, 2.2, 'MENSUAL', 'PENDIENTE', NULL, NULL),
 (9, 'SOL-1700000009', 9, 1, 2, 1000.00, 6, 3.0, 'SEMANAL', 'DESEMBOLSADA', 'Aprobado por comité.', CURRENT_TIMESTAMP),
 (10, 'SOL-1700000010', 10, 1, 2, 1400.00, 2, 2.8, 'MENSUAL', 'DESEMBOLSADA', 'Aprobado sin problemas.', CURRENT_TIMESTAMP);
+
+-- Historial de Estados de Solicitudes (Ejemplos basados en las solicitudes)
+INSERT INTO historial_estado_solicitud (solicitud_id, fecha_cambio, estado_anterior, estado_nuevo, evento, observacion) VALUES 
+(1, '2026-07-01 09:00:00', NULL, 'PENDIENTE', 'registrarSolicitud()', 'Solicitud ingresada al sistema.'),
+
+(2, '2026-07-01 10:00:00', NULL, 'PENDIENTE', 'registrarSolicitud()', 'Solicitud ingresada al sistema.'),
+(2, '2026-07-01 14:30:00', 'PENDIENTE', 'RECHAZADA', 'rechazarSolicitud()', 'El cliente tiene un nivel de mora de 45 dias. Se rechaza.'),
+
+(3, '2026-07-02 08:30:00', NULL, 'PENDIENTE', 'registrarSolicitud()', 'Solicitud ingresada al sistema.'),
+(3, '2026-07-02 11:15:00', 'PENDIENTE', 'APROBADA', 'aprobarSolicitud()', 'Excelente perfil crediticio. Aprobado por gerencia.'),
+
+(4, '2026-06-01 09:00:00', NULL, 'PENDIENTE', 'registrarSolicitud()', 'Solicitud ingresada.'),
+(4, '2026-06-02 10:00:00', 'PENDIENTE', 'APROBADA', 'aprobarSolicitud()', 'El negocio tiene buenos ingresos, procede el credito.'),
+(4, DATE_SUB(CURRENT_DATE, INTERVAL 45 DAY), 'APROBADA', 'DESEMBOLSADA', 'desembolsar()', 'Desembolso en efectivo.'),
+
+(5, '2026-06-15 09:00:00', NULL, 'PENDIENTE', 'registrarSolicitud()', 'Solicitud ingresada.'),
+(5, '2026-06-16 11:00:00', 'PENDIENTE', 'APROBADA', 'aprobarSolicitud()', 'Aprobado.'),
+(5, DATE_SUB(CURRENT_DATE, INTERVAL 30 DAY), 'APROBADA', 'DESEMBOLSADA', 'desembolsar()', 'Desembolso en efectivo.');
 
 -- Parámetros de Evaluación
 INSERT INTO parametros_evaluacion (solicitud_id, cumple_requisitos, capacidad_pago, verificacion_ingresos, referencia_verificada) VALUES 
