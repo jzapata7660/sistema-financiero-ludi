@@ -262,6 +262,7 @@ const CobranzaView = () => {
         onClose={() => setIsCobranzaModalOpen(false)} 
         cuota={selectedCuota} 
         onRegistrarPago={openPagoModal}
+        onActionComplete={cargarDatos}
       />
       <ModalRegistrarPago 
         isOpen={isPagoModalOpen} 

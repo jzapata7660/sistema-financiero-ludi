@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { X, User, FileText, Phone, MapPin, AlertTriangle, Clock, Banknote } from 'lucide-react';
+import { X, User, FileText, Phone, MapPin, AlertTriangle, Clock, Banknote, CheckCircle } from 'lucide-react';
 import { apiCobranza } from '../services/apiCobranza';
+import { apiSolicitud } from '../services/apiSolicitud';
 import { useAuth } from '../context/AuthContext';
 import ModalLlamada from './ModalLlamada';
 import ModalVisita from './ModalVisita';
 
-const ModalCobranza = ({ isOpen, onClose, cuota, onRegistrarPago }) => {
+const ModalCobranza = ({ isOpen, onClose, cuota, onRegistrarPago, onActionComplete }) => {
   const { user } = useAuth();
   const [historial, setHistorial] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
@@ -14,6 +15,7 @@ const ModalCobranza = ({ isOpen, onClose, cuota, onRegistrarPago }) => {
   const [isLlamadaOpen, setIsLlamadaOpen] = useState(false);
   const [isVisitaOpen, setIsVisitaOpen] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const [derivacionSuccess, setDerivacionSuccess] = useState(false);
 
   useEffect(() => {
     if (isOpen && cuota) {
@@ -22,50 +24,100 @@ const ModalCobranza = ({ isOpen, onClose, cuota, onRegistrarPago }) => {
   }, [isOpen, cuota]);
 
   const cargarHistorial = async () => {
-    // In our simplified mock we need the solicitud id. 
-    // We didn't explicitly include it in CuotaCobranzaDTO, but we have codigoSolicitud.
-    // Wait, the API needs idSolicitud. I'll need to fetch by something or pass idSolicitud. 
-    // Actually, cuota.codigoSolicitud is what we have. Let's assume we modified the backend or just ignore history fetch if not mapped right.
-    // I will mock it temporarily if we don't have idSolicitud.
-    // In the real impl, we should have idSolicitud in the DTO.
+    try {
+      setLoadingHistory(true);
+      const solicitudes = await apiSolicitud.getSolicitudes();
+      const sol = solicitudes.find(s => s.codigoSolicitud === cuota.codigoSolicitud);
+      if (sol) {
+        const h = await apiCobranza.obtenerHistorial(sol.idSolicitud);
+        setHistorial(h);
+      }
+    } catch(err) {
+      console.error(err);
+    } finally {
+      setLoadingHistory(false);
+    }
   };
 
   const handleConfirmAction = async (datos) => {
     try {
-      let idSolicitud = parseInt(cuota.codigoSolicitud.replace('CR-', '')) || 1; 
+      const solicitudes = await apiSolicitud.getSolicitudes();
+      const sol = solicitudes.find(s => s.codigoSolicitud === cuota.codigoSolicitud);
+      if (!sol) throw new Error("No se encontró la solicitud");
+
+      let idSolicitud = sol.idSolicitud;
       
       await apiCobranza.registrarAccion(idSolicitud, {
         tipoAccion: datos.tipoAccion,
         resultado: datos.resultado + (datos.observaciones ? ` - ${datos.observaciones}` : ''),
         analistaId: user.idUsuario
       });
-      // Optionally show a success toast here
       // Recargar historial
       cargarHistorial();
     } catch (error) {
       alert('Error registrando acción');
+      throw error;
     }
   };
 
-  const handleDerivacion = () => {
+  const handleDerivacion = async () => {
     if (cuota.diasAtraso <= 30) {
       setShowToast(true);
       setTimeout(() => setShowToast(false), 4000);
       return;
     }
     
-    // Implement logic for deriving
-    handleConfirmAction({
-      tipoAccion: 'Derivación',
-      resultado: 'Caso derivado a jefe de cobranza',
-      observaciones: ''
-    });
+    try {
+      await handleConfirmAction({
+        tipoAccion: 'Derivación',
+        resultado: 'Caso derivado a jefe de cobranza',
+        observaciones: ''
+      });
+      setDerivacionSuccess(true);
+    } catch(err) {
+      // Error is handled in handleConfirmAction
+    }
   };
 
   if (!isOpen || !cuota) return null;
 
   return (
     <div className="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+      {derivacionSuccess ? (
+        <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-8 text-center animate-fade-in relative z-[60]">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="text-green-500 w-10 h-10" />
+          </div>
+          <h2 className="text-2xl font-bold text-slate-800 mb-2">¡Derivación exitosa!</h2>
+          <p className="text-sm text-slate-500 mb-6">El caso ha sido escalado a Recuperaciones.</p>
+          
+          <div className="bg-slate-50 rounded-xl p-4 text-left space-y-3 mb-6">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+              <span className="text-xs font-semibold text-slate-500 uppercase">Solicitud:</span>
+              <span className="font-bold text-slate-800">{cuota.codigoSolicitud}</span>
+            </div>
+            <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+              <span className="text-xs font-semibold text-slate-500 uppercase">Cliente:</span>
+              <span className="font-bold text-slate-800 text-right">{cuota.clienteNombres} {cuota.clienteApellidos}</span>
+            </div>
+            <div className="flex justify-between items-center pt-1">
+              <span className="text-xs font-semibold text-slate-500 uppercase">Estado actual:</span>
+              <span className="font-bold text-rose-600">En Recuperación</span>
+            </div>
+          </div>
+
+          <button 
+            onClick={() => {
+              setDerivacionSuccess(false);
+              if(onActionComplete) onActionComplete();
+              onClose();
+            }} 
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-colors shadow-sm flex justify-center gap-2 items-center"
+          >
+            <CheckCircle size={18} /> Aceptar
+          </button>
+        </div>
+      ) : (
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl flex flex-col max-h-[90vh]">
         
         {/* Header */}
@@ -188,6 +240,7 @@ const ModalCobranza = ({ isOpen, onClose, cuota, onRegistrarPago }) => {
 
         </div>
       </div>
+      )}
 
       {/* Toast Alert for Derivación */}
       {showToast && (

@@ -178,6 +178,12 @@ public class CobranzaServicio {
         Usuario analista = usuarioRepositorio.findById(dto.getAnalistaId())
                 .orElseThrow(() -> new RuntimeException("Analista no encontrado"));
 
+        // Si la acción es una derivación, actualizar el estado de la solicitud primero para evitar deadlocks
+        if ("Derivación".equals(dto.getTipoAccion())) {
+            solicitud.setEstado("EN RECUPERACION");
+            solicitudRepositorio.save(solicitud);
+        }
+
         AccionCobranza accion = new AccionCobranza();
         accion.setSolicitud(solicitud);
         accion.setCliente(solicitud.getCliente());
