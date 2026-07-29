@@ -12,7 +12,7 @@ public class ClienteResumenDTO {
     private String telefono;
     private String direccion;
     private String estado;
-    
+
     // Historial Crediticio
     private Integer scoreCrediticio;
     private Integer creditosAnteriores;

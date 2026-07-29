@@ -7,7 +7,7 @@ const ModalClienteDetalle = ({ isOpen, onClose, cliente }) => {
   return (
     <div className="fixed inset-0 bg-slate-900/50 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl flex flex-col max-h-[90vh]">
-        
+
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b border-slate-100">
           <div>
@@ -20,7 +20,7 @@ const ModalClienteDetalle = ({ isOpen, onClose, cliente }) => {
         </div>
 
         <div className="p-6 overflow-y-auto space-y-6">
-          
+
           {/* Top Info Cards */}
           <div className="grid grid-cols-4 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
             <div>
@@ -52,7 +52,7 @@ const ModalClienteDetalle = ({ isOpen, onClose, cliente }) => {
             </div>
             <div>
               <p className="text-xs text-slate-500 mb-1">Créditos</p>
-              <p className="text-sm font-bold text-slate-800">{cliente.creditosAnteriores} créditos</p>
+              <p className="text-sm font-bold text-slate-800">{cliente.creditosAnteriores} créditos externos</p>
             </div>
             <div>
               <p className="text-xs text-slate-500 mb-1">Documentación</p>
@@ -105,16 +105,16 @@ const ModalClienteDetalle = ({ isOpen, onClose, cliente }) => {
           </section>
 
         </div>
-        
+
         {/* Footer actions */}
         <div className="p-4 border-t border-slate-100 flex justify-end gap-3 bg-slate-50 rounded-b-2xl">
-          <button 
+          <button
             onClick={onClose}
             className="px-6 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg transition-colors"
           >
             Cerrar
           </button>
-          <button 
+          <button
             onClick={() => { alert('Funcionalidad de edición pendiente'); }}
             className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
           >

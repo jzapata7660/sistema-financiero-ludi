@@ -6,7 +6,7 @@ backend/target/
 *.jar
 *.war
 *.ear
-*.logs
+*.logscd
 
 # Spring Boot
 HELP.md

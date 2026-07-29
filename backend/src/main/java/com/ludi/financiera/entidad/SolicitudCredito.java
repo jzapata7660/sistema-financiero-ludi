@@ -26,6 +26,10 @@ public class SolicitudCredito {
     private Cliente cliente;
 
     @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "negocio_id", nullable = false)
+    private Negocio negocio;
+
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "analista_id", nullable = false)
     private Usuario analista;
 
@@ -46,7 +50,7 @@ public class SolicitudCredito {
     private String modalidadPago; // DIARIO, SEMANAL, MENSUAL
 
     @Column(nullable = false, length = 30)
-    private String estado; // PENDIENTE, APROBADA, RECHAZADA, DESEMBOLSADA
+    private String estado; // PENDIENTE, APROBADA, RECHAZADA, DESEMBOLSADO
 
     @CreationTimestamp
     @Column(name = "fecha_registro")
@@ -58,7 +62,7 @@ public class SolicitudCredito {
     @Column(length = 500)
     private String observaciones;
 
-    @OneToOne(mappedBy = "solicitud", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "solicitud", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private CronogramaPagos cronogramaPagos;
 
     @OneToOne(mappedBy = "solicitud", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

@@ -3,11 +3,14 @@ import { Users, AlertTriangle, FileText, Search, UserPlus, Eye, CheckCircle, Pen
 import { apiCliente } from '../services/apiCliente';
 import ModalClienteRegistro from '../components/ModalClienteRegistro';
 import ModalClienteDetalle from '../components/ModalClienteDetalle';
+import { useAuth } from '../context/AuthContext';
 
 const ClientesView = () => {
+  const { user } = useAuth();
+  const currentDate = new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   const [clientes, setClientes] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   // Modal states
   const [isRegistroModalOpen, setIsRegistroModalOpen] = useState(false);
   const [isDetalleModalOpen, setIsDetalleModalOpen] = useState(false);
@@ -76,13 +79,19 @@ const ClientesView = () => {
   const conteoMora = clientes.filter(c => c.estado?.toLowerCase() === 'mora').length;
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-6">
-      
+    <div className="space-y-6">
+
       {/* Header */}
-      <div className="flex justify-between items-end">
+      <div className="flex justify-between items-center mb-2 pt-2">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Gestión de Clientes</h1>
-          <p className="text-slate-500 text-sm">Consulta, registro y mantenimiento de clientes</p>
+          <h2 className="text-[22px] font-extrabold text-slate-800 tracking-tight">Gestión de Clientes</h2>
+          <p className="text-sm text-gray-500 mt-0.5 font-medium">Consulta, registro y mantenimiento de clientes</p>
+        </div>
+        <div className="flex items-center gap-5">
+          <div className="text-right">
+            <p className="text-sm font-bold text-slate-800 capitalize">{currentDate}</p>
+            <p className="text-[13px] text-gray-400 font-medium">{user?.agencia?.nombre || 'Agencia Principal - Piura'}</p>
+          </div>
         </div>
       </div>
 
@@ -121,7 +130,7 @@ const ClientesView = () => {
               <p className="text-sm text-slate-500">Búsqueda, consulta, registro y edición de clientes</p>
             </div>
           </div>
-          <button 
+          <button
             onClick={handleNuevoCliente}
             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors shadow-sm"
           >
@@ -164,7 +173,7 @@ const ClientesView = () => {
                   <td className="py-4 px-6">
                     <div>
                       <p className="text-sm font-semibold text-slate-800">{cliente.nombres} {cliente.apellidos}</p>
-                      <p className="text-xs text-slate-500">Score {cliente.scoreCrediticio || 0} | {cliente.creditosAnteriores || 0} créditos</p>
+                      <p className="text-xs text-slate-500">Score {cliente.scoreCrediticio || 0} | {cliente.creditosAnteriores || 0} créditos externos</p>
                     </div>
                   </td>
                   <td className="py-4 px-6">
@@ -180,21 +189,21 @@ const ClientesView = () => {
                   </td>
                   <td className="py-4 px-6 text-center">
                     <div className="flex justify-center gap-2">
-                      <button 
+                      <button
                         onClick={() => handleVerDetalle(cliente)}
                         className="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
                         title="Ver detalle"
                       >
                         <Eye className="w-3.5 h-3.5" />
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleEditarCliente(cliente)}
                         className="inline-flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
                         title="Editar cliente"
                       >
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleDesactivarCliente(cliente.idCliente, cliente.nombres, cliente.apellidos)}
                         className="inline-flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
                         title="Desactivar cliente"
@@ -216,16 +225,16 @@ const ClientesView = () => {
       </div>
 
       {/* Modals */}
-      <ModalClienteRegistro 
-        isOpen={isRegistroModalOpen} 
-        onClose={() => setIsRegistroModalOpen(false)} 
+      <ModalClienteRegistro
+        isOpen={isRegistroModalOpen}
+        onClose={() => setIsRegistroModalOpen(false)}
         onClienteRegistrado={cargarClientes}
         clienteAEditar={clienteAEditar}
       />
-      <ModalClienteDetalle 
-        isOpen={isDetalleModalOpen} 
-        onClose={() => setIsDetalleModalOpen(false)} 
-        cliente={selectedCliente} 
+      <ModalClienteDetalle
+        isOpen={isDetalleModalOpen}
+        onClose={() => setIsDetalleModalOpen(false)}
+        cliente={selectedCliente}
       />
     </div>
   );

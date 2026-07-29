@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.time.LocalDate;
 
 @Service
 @RequiredArgsConstructor
@@ -42,8 +43,8 @@ public class CajaServicio {
         dto.setClienteDni(cliente.getDni());
         dto.setClienteDireccion(cliente.getDireccion());
         
-        Optional<Negocio> negocioOpt = negocioRepositorio.findByClienteIdCliente(cliente.getIdCliente());
-        dto.setClienteGiro(negocioOpt.map(Negocio::getGiroNegocio).orElse("No especificado"));
+        Negocio negocio = solicitud.getNegocio();
+        dto.setClienteGiro(negocio != null ? negocio.getGiroNegocio() : "No especificado");
         
         dto.setMonto(solicitud.getMontoSolicitado());
         dto.setPlazoMeses(solicitud.getPlazoMeses());
@@ -71,7 +72,70 @@ public class CajaServicio {
             }
             dto.setCronograma(cuotasDto);
         } else {
-            dto.setCronograma(new ArrayList<>());
+            // Generate Preview
+            List<ExpedienteCajaDTO.CuotaDesembolsoDTO> preview = new ArrayList<>();
+            Double monto = solicitud.getMontoSolicitado();
+            Integer plazo = solicitud.getPlazoMeses();
+            Double tasa = solicitud.getTasaInteres();
+            String modalidad = solicitud.getModalidadPago().toUpperCase();
+            
+            int numeroCuotas;
+            int diasIntervalo;
+            double i_rate; 
+
+            switch (modalidad) {
+                case "DIARIO":
+                    numeroCuotas = plazo * 30;
+                    diasIntervalo = 1;
+                    i_rate = (tasa / 100.0) / 30.0;
+                    break;
+                case "SEMANAL":
+                    numeroCuotas = plazo * 4;
+                    diasIntervalo = 7;
+                    i_rate = (tasa / 100.0) / 4.0;
+                    break;
+                case "QUINCENAL":
+                    numeroCuotas = plazo * 2;
+                    diasIntervalo = 15;
+                    i_rate = (tasa / 100.0) / 2.0;
+                    break;
+                case "MENSUAL":
+                default:
+                    numeroCuotas = plazo;
+                    diasIntervalo = 30;
+                    i_rate = tasa / 100.0;
+                    break;
+            }
+
+            Double cuotaFija = (monto * i_rate) / (1 - Math.pow(1 + i_rate, -numeroCuotas));
+            double cuotaFijaBase = Math.round(cuotaFija * 100.0) / 100.0;
+            LocalDate fechaVencimiento = LocalDate.now();
+            double saldo = monto;
+
+            for (int i = 1; i <= numeroCuotas; i++) {
+                fechaVencimiento = fechaVencimiento.plusDays(diasIntervalo);
+                
+                double interesRedondeado = Math.round(saldo * i_rate * 100.0) / 100.0;
+                double capitalRedondeado = Math.round((cuotaFijaBase - interesRedondeado) * 100.0) / 100.0;
+                double cuotaTotal = cuotaFijaBase;
+                
+                if (i == numeroCuotas) {
+                    capitalRedondeado = Math.round(saldo * 100.0) / 100.0;
+                    interesRedondeado = Math.round(saldo * i_rate * 100.0) / 100.0;
+                    cuotaTotal = Math.round((capitalRedondeado + interesRedondeado) * 100.0) / 100.0;
+                }
+                
+                saldo -= capitalRedondeado;
+
+                ExpedienteCajaDTO.CuotaDesembolsoDTO cDto = new ExpedienteCajaDTO.CuotaDesembolsoDTO();
+                cDto.setNumeroCuota(i);
+                cDto.setFechaVencimiento(fechaVencimiento.toString());
+                cDto.setMontoCapital(capitalRedondeado);
+                cDto.setMontoInteres(interesRedondeado);
+                cDto.setMontoTotal(cuotaTotal);
+                preview.add(cDto);
+            }
+            dto.setCronograma(preview);
         }
 
         return dto;
@@ -106,8 +170,87 @@ public class CajaServicio {
         
         desembolsoRepositorio.save(desembolso);
 
-        // Cambiar estado de solicitud a DESEMBOLSADO o ACTIVO
+        // Cambiar estado de solicitud a DESEMBOLSADO
         solicitud.setEstado("DESEMBOLSADO");
+        solicitudRepositorio.save(solicitud);
+
+        // Generar Cronograma de Pagos y Cuotas automáticamente (Sistema Francés)
+        Double monto = solicitud.getMontoSolicitado();
+        Integer plazo = solicitud.getPlazoMeses();
+        Double tasa = solicitud.getTasaInteres();
+        
+        String modalidad = solicitud.getModalidadPago().toUpperCase();
+        int numeroCuotas;
+        int diasIntervalo;
+        double i_rate; // Interest rate per period
+
+        switch (modalidad) {
+            case "DIARIO":
+                numeroCuotas = plazo * 30;
+                diasIntervalo = 1;
+                i_rate = (tasa / 100.0) / 30.0;
+                break;
+            case "SEMANAL":
+                numeroCuotas = plazo * 4;
+                diasIntervalo = 7;
+                i_rate = (tasa / 100.0) / 4.0;
+                break;
+            case "QUINCENAL":
+                numeroCuotas = plazo * 2;
+                diasIntervalo = 15;
+                i_rate = (tasa / 100.0) / 2.0;
+                break;
+            case "MENSUAL":
+            default:
+                numeroCuotas = plazo;
+                diasIntervalo = 30;
+                i_rate = tasa / 100.0;
+                break;
+        }
+
+        // R = (P * i) / (1 - (1 + i)^-n)
+        Double cuotaFija = (monto * i_rate) / (1 - Math.pow(1 + i_rate, -numeroCuotas));
+        Double totalPagar = cuotaFija * numeroCuotas;
+        Double totalInteres = totalPagar - monto;
+        Double totalCapital = monto;
+
+        CronogramaPagos cronograma = new CronogramaPagos();
+        cronograma.setSolicitud(solicitud);
+        cronograma.setTotalCapital(Math.round(totalCapital * 100.0) / 100.0);
+        cronograma.setTotalInteres(Math.round(totalInteres * 100.0) / 100.0);
+        cronograma.setTotalPagar(Math.round(totalPagar * 100.0) / 100.0);
+        cronogramaRepositorio.save(cronograma);
+
+        double cuotaFijaBase = Math.round(cuotaFija * 100.0) / 100.0;
+        LocalDate fechaVencimiento = LocalDate.now();
+        double saldo = monto;
+
+        for (int i = 1; i <= numeroCuotas; i++) {
+            fechaVencimiento = fechaVencimiento.plusDays(diasIntervalo);
+            
+            double interesRedondeado = Math.round(saldo * i_rate * 100.0) / 100.0;
+            double capitalRedondeado = Math.round((cuotaFijaBase - interesRedondeado) * 100.0) / 100.0;
+            double cuotaTotal = cuotaFijaBase;
+            
+            if (i == numeroCuotas) {
+                capitalRedondeado = Math.round(saldo * 100.0) / 100.0;
+                interesRedondeado = Math.round(saldo * i_rate * 100.0) / 100.0;
+                cuotaTotal = Math.round((capitalRedondeado + interesRedondeado) * 100.0) / 100.0;
+            }
+            
+            saldo -= capitalRedondeado;
+            
+            Cuota cuota = new Cuota();
+            cuota.setCronograma(cronograma);
+            cuota.setNumeroCuota(i);
+            cuota.setMontoCapital(capitalRedondeado);
+            cuota.setMontoInteres(interesRedondeado);
+            cuota.setMontoTotal(cuotaTotal);
+            cuota.setFechaVencimiento(fechaVencimiento);
+            cuota.setEstado("PENDIENTE");
+            
+            cuotaRepositorio.save(cuota);
+        }
         solicitudRepositorio.save(solicitud);
     }
 

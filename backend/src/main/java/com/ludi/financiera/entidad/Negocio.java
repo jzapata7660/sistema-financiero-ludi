@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Data
@@ -17,10 +18,14 @@ public class Negocio {
     @Column(name = "id_negocio")
     private Integer idNegocio;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "cliente_id", nullable = false)
     @JsonIgnore
     private Cliente cliente;
+
+    @OneToMany(mappedBy = "negocio", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<SolicitudCredito> solicitudes;
 
     @Column(length = 11)
     private String ruc;
@@ -36,4 +41,7 @@ public class Negocio {
 
     @Column(name = "ingreso_promedio_mensual", precision = 10)
     private Double ingresoPromedioMensual;
+
+    @Column(name = "tiempo_operacion", length = 50)
+    private String tiempoOperacion;
 }

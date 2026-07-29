@@ -23,8 +23,8 @@ public class Pago {
     private Cuota cuota;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "cajera_id", nullable = false)
-    private Usuario cajera;
+    @JoinColumn(name = "analista_id", nullable = false)
+    private Usuario analista;
 
     @Column(name = "monto_pagado", nullable = false)
     private Double montoPagado;
@@ -41,4 +41,10 @@ public class Pago {
 
     @Column(name = "observaciones")
     private String observaciones;
+
+    @Column(name = "numero_cuota", nullable = false)
+    private Integer numeroCuota;
+
+    @Column(name = "saldo_pendiente")
+    private Double saldoPendiente = 0.0;
 }

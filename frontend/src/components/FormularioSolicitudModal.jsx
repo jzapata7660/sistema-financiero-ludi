@@ -45,6 +45,7 @@ const FormularioSolicitudModal = ({ onClose, onSaveSuccess }) => {
   
   const [nuevoCliente, setNuevoCliente] = useState({ nombres: '', apellidos: '', direccion: '', telefono: '' });
 
+  const [negociosCliente, setNegociosCliente] = useState([]);
   const [negocio, setNegocio] = useState(null);
   const [nuevoNegocio, setNuevoNegocio] = useState({ ruc: '', razonSocial: '', giroNegocio: '', direccion: '', ingresoPromedioMensual: '', tiempoOperacion: '' });
   const [modoRegistroNegocio, setModoRegistroNegocio] = useState(false);
@@ -113,15 +114,18 @@ const FormularioSolicitudModal = ({ onClose, onSaveSuccess }) => {
   const buscarNegocio = async (dni) => {
     try {
       const data = await apiSolicitud.getNegocioPorDniCliente(dni);
-      if (data) {
-        setNegocio(data);
+      if (data && data.length > 0) {
+        setNegociosCliente(data);
+        setNegocio(data[0]);
         setModoRegistroNegocio(false);
       } else {
+        setNegociosCliente([]);
         setNegocio(null);
         setModoRegistroNegocio(true);
       }
     } catch (err) {
       console.error(err);
+      setNegociosCliente([]);
       setModoRegistroNegocio(true);
     }
   };
@@ -163,6 +167,7 @@ const FormularioSolicitudModal = ({ onClose, onSaveSuccess }) => {
 
       const payload = {
         dniCliente: finalCliente.dni,
+        negocioId: finalNegocio.idNegocio,
         analistaId: user?.id || 1,
         monto: condiciones.monto,
         plazoMeses: condiciones.plazo,
@@ -364,14 +369,40 @@ const FormularioSolicitudModal = ({ onClose, onSaveSuccess }) => {
                   <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2 text-sm uppercase">
                     <Store size={18} className="text-green-600" /> DATOS DEL NEGOCIO
                   </h3>
+                  
+                  {negociosCliente.length > 0 && (
+                    <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                      <label className="text-[11px] font-bold text-gray-800 block mb-1.5 uppercase">Seleccione el negocio a evaluar *</label>
+                      <select 
+                        className="w-full p-3 border border-gray-300 rounded-lg text-sm bg-white font-medium focus:ring-2 focus:ring-blue-500 outline-none"
+                        value={modoRegistroNegocio ? 'nuevo' : (negocio?.idNegocio || '')}
+                        onChange={(e) => {
+                          if (e.target.value === 'nuevo') {
+                            setModoRegistroNegocio(true);
+                            setNegocio(null);
+                          } else {
+                            setModoRegistroNegocio(false);
+                            const seleccionado = negociosCliente.find(n => n.idNegocio.toString() === e.target.value);
+                            setNegocio(seleccionado);
+                          }
+                        }}
+                      >
+                        {negociosCliente.map(n => (
+                          <option key={n.idNegocio} value={n.idNegocio}>{n.razonSocial || n.giroNegocio} - {n.direccion}</option>
+                        ))}
+                        <option value="nuevo" className="font-bold text-blue-600">+ Registrar Nuevo Negocio Adicional</option>
+                      </select>
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-2 gap-6">
                      <div>
                        <label className="text-[11px] font-bold text-gray-800 block mb-1.5 uppercase">Dirección Exacta del Negocio *</label>
-                       <input type="text" placeholder="Av. Grau 456, Catacaos" className="w-full p-3 border border-gray-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-50/50 disabled:text-gray-500" value={negocio && !modoRegistroNegocio ? negocio.direccion : nuevoNegocio.direccion} onChange={e => setNuevoNegocio({...nuevoNegocio, direccion: e.target.value})} disabled={negocio && !modoRegistroNegocio} />
+                       <input type="text" placeholder="Av. Grau 456, Catacaos" className="w-full p-3 border border-gray-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-50/50 disabled:text-gray-500" value={negocio && !modoRegistroNegocio ? (negocio.direccion || '') : (nuevoNegocio.direccion || '')} onChange={e => setNuevoNegocio({...nuevoNegocio, direccion: e.target.value})} disabled={negocio && !modoRegistroNegocio} />
                      </div>
                      <div>
                        <label className="text-[11px] font-bold text-gray-800 block mb-1.5 uppercase">Giro del Negocio *</label>
-                       <select className="w-full p-3 border border-gray-200 rounded-lg text-sm bg-white font-medium focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-50/50 disabled:text-gray-500" value={negocio && !modoRegistroNegocio ? negocio.giroNegocio : nuevoNegocio.giroNegocio} onChange={e => setNuevoNegocio({...nuevoNegocio, giroNegocio: e.target.value})} disabled={negocio && !modoRegistroNegocio}>
+                       <select className="w-full p-3 border border-gray-200 rounded-lg text-sm bg-white font-medium focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-50/50 disabled:text-gray-500" value={negocio && !modoRegistroNegocio ? (negocio.giroNegocio || '') : (nuevoNegocio.giroNegocio || '')} onChange={e => setNuevoNegocio({...nuevoNegocio, giroNegocio: e.target.value})} disabled={negocio && !modoRegistroNegocio}>
                          <option value="">Seleccione...</option>
                          <option value="Comercio de Abarrotes">Comercio de Abarrotes</option>
                          <option value="Artesanía Textil">Artesanía Textil</option>
@@ -387,7 +418,7 @@ const FormularioSolicitudModal = ({ onClose, onSaveSuccess }) => {
                      </div>
                      <div>
                        <label className="text-[11px] font-bold text-gray-800 block mb-1.5 uppercase">Tiempo de Operación *</label>
-                       <select className="w-full p-3 border border-gray-200 rounded-lg text-sm bg-white font-medium focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-50/50 disabled:text-gray-500" value={negocio && !modoRegistroNegocio ? negocio.tiempoOperacion : nuevoNegocio.tiempoOperacion} onChange={e => setNuevoNegocio({...nuevoNegocio, tiempoOperacion: e.target.value})} disabled={negocio && !modoRegistroNegocio}>
+                       <select className="w-full p-3 border border-gray-200 rounded-lg text-sm bg-white font-medium focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-50/50 disabled:text-gray-500" value={negocio && !modoRegistroNegocio ? (negocio.tiempoOperacion || '') : (nuevoNegocio.tiempoOperacion || '')} onChange={e => setNuevoNegocio({...nuevoNegocio, tiempoOperacion: e.target.value})} disabled={negocio && !modoRegistroNegocio}>
                          <option value="">Seleccione...</option>
                          <option value="Menos de 1 año">Menos de 1 año</option>
                          <option value="1 a 2 años">1 a 2 años</option>
@@ -397,7 +428,7 @@ const FormularioSolicitudModal = ({ onClose, onSaveSuccess }) => {
                      </div>
                      <div>
                        <label className="text-[11px] font-bold text-gray-800 block mb-1.5 uppercase">Ingresos Mensuales Aprox. (S/)</label>
-                       <input type="number" placeholder="1500" className="w-full p-3 border border-gray-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-50/50 disabled:text-gray-500" value={negocio && !modoRegistroNegocio ? negocio.ingresoPromedioMensual : nuevoNegocio.ingresoPromedioMensual} onChange={e => setNuevoNegocio({...nuevoNegocio, ingresoPromedioMensual: e.target.value})} disabled={negocio && !modoRegistroNegocio} />
+                       <input type="number" placeholder="1500" className="w-full p-3 border border-gray-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-50/50 disabled:text-gray-500" value={negocio && !modoRegistroNegocio ? (negocio.ingresoPromedioMensual || '') : (nuevoNegocio.ingresoPromedioMensual || '')} onChange={e => setNuevoNegocio({...nuevoNegocio, ingresoPromedioMensual: e.target.value})} disabled={negocio && !modoRegistroNegocio} />
                      </div>
                   </div>
                </div>
@@ -584,8 +615,8 @@ const FormularioSolicitudModal = ({ onClose, onSaveSuccess }) => {
                               <td className="px-5 py-2 font-bold text-slate-800">{c.numeroCuota}</td>
                               <td className="px-5 py-2 text-slate-600">{c.fechaVencimiento}</td>
                               <td className="px-5 py-2 font-bold text-[#8b5cf6]">S/ {c.montoTotal.toFixed(2)}</td>
-                              <td className="px-5 py-2 text-slate-600">S/ {(c.capital || (c.montoTotal * 0.75)).toFixed(2)}</td>
-                              <td className="px-5 py-2 text-slate-600">S/ {(c.interes || (c.montoTotal * 0.25)).toFixed(2)}</td>
+                              <td className="px-5 py-2 text-slate-600">S/ {(c.montoCapital || (c.montoTotal * 0.75)).toFixed(2)}</td>
+                              <td className="px-5 py-2 text-slate-600">S/ {(c.montoInteres || (c.montoTotal * 0.25)).toFixed(2)}</td>
                             </tr>
                           ))}
                         </tbody>

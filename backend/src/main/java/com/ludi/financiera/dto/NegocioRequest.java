@@ -10,4 +10,5 @@ public class NegocioRequest {
     private String giroNegocio;
     private String direccion;
     private Double ingresoPromedioMensual;
+    private String tiempoOperacion;
 }

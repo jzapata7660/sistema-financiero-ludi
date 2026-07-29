@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, User, DollarSign, History, CheckSquare, MessageSquare } from 'lucide-react';
+import { X, User, DollarSign, History, CheckSquare, MessageSquare, Calendar } from 'lucide-react';
 import { apiSolicitud } from '../services/apiSolicitud';
 import { useAuth } from '../context/AuthContext';
 
@@ -192,6 +192,49 @@ const AutorizacionModal = ({ solicitud, onClose, onSuccess }) => {
                 onChange={(e) => setObservaciones(e.target.value)}
                 readOnly={isReadOnly}
               ></textarea>
+            </section>
+          )}
+
+          {/* Cronograma de Pagos para Desembolsados */}
+          {solicitud.estado === 'DESEMBOLSADO' && solicitud.cronogramaPagos && (
+            <section className="mt-6 border-t border-gray-100 pt-6">
+              <h3 className="flex items-center gap-2 text-sm font-bold text-blue-800 mb-4 uppercase tracking-wide">
+                <Calendar size={16} /> Cronograma de Pagos Generado
+              </h3>
+              <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-200 text-gray-500 text-[11px] uppercase tracking-wider">
+                      <th className="px-4 py-3 font-semibold text-center w-16">N° Cuota</th>
+                      <th className="px-4 py-3 font-semibold">Vencimiento</th>
+                      <th className="px-4 py-3 font-semibold text-right">Capital</th>
+                      <th className="px-4 py-3 font-semibold text-right">Interés</th>
+                      <th className="px-4 py-3 font-semibold text-right text-blue-700">Monto Total</th>
+                      <th className="px-4 py-3 font-semibold text-center w-24">Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 text-sm">
+                    {solicitud.cronogramaPagos.cuotas?.map((cuota, idx) => (
+                      <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-3 text-center font-semibold text-gray-700">{cuota.numeroCuota}</td>
+                        <td className="px-4 py-3 text-gray-600 font-medium">
+                          {new Date(cuota.fechaVencimiento).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        </td>
+                        <td className="px-4 py-3 text-right text-gray-500">S/ {cuota.montoCapital?.toFixed(2)}</td>
+                        <td className="px-4 py-3 text-right text-gray-500">S/ {cuota.montoInteres?.toFixed(2)}</td>
+                        <td className="px-4 py-3 text-right font-bold text-gray-800">S/ {cuota.montoTotal?.toFixed(2)}</td>
+                        <td className="px-4 py-3 text-center">
+                          <span className={`inline-flex px-2 py-1 text-[10px] font-bold rounded-md ${
+                            cuota.estado === 'PAGADA' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                          }`}>
+                            {cuota.estado}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </section>
           )}
 

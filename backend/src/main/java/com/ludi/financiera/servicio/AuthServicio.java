@@ -2,6 +2,7 @@ package com.ludi.financiera.servicio;
 
 import com.ludi.financiera.dto.LoginRequest;
 import com.ludi.financiera.dto.LoginResponse;
+import com.ludi.financiera.dto.AgenciaDTO;
 import com.ludi.financiera.entidad.Usuario;
 import com.ludi.financiera.repositorio.UsuarioRepositorio;
 import lombok.RequiredArgsConstructor;
@@ -25,12 +26,16 @@ public class AuthServicio {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Usuario inactivo");
         }
 
+        AgenciaDTO agenciaDTO = usuario.getAgencia() != null ? 
+                new AgenciaDTO(usuario.getAgencia().getIdAgencia(), usuario.getAgencia().getNombre()) : null;
+
         return new LoginResponse(
                 usuario.getIdUsuario(),
                 usuario.getNombres(),
                 usuario.getApellidos(),
                 usuario.getEmail(),
-                usuario.getRol().getNombreRol()
+                usuario.getRol().getNombreRol(),
+                agenciaDTO
         );
     }
 }

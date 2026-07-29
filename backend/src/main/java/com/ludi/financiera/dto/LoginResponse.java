@@ -11,4 +11,5 @@ public class LoginResponse {
     private String apellidos;
     private String email;
     private String rol;
+    private AgenciaDTO agencia;
 }

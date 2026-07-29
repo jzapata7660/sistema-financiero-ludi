@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, UserPlus, User } from 'lucide-react';
 import { apiCliente } from '../services/apiCliente';
 
 const ModalClienteRegistro = ({ isOpen, onClose, onClienteRegistrado, clienteAEditar }) => {
@@ -55,27 +55,40 @@ const ModalClienteRegistro = ({ isOpen, onClose, onClienteRegistrado, clienteAEd
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/50 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg flex flex-col relative overflow-hidden">
+    <div className="fixed inset-0 bg-slate-900/60 z-[60] flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white rounded-[24px] shadow-2xl w-full max-w-lg flex flex-col relative overflow-hidden animate-in zoom-in-95 duration-200">
         
         {/* Header */}
-        <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-900 text-white">
-          <h2 className="text-xl font-bold">{clienteAEditar ? 'Editar Cliente' : 'Nuevo Cliente'}</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
-            <X className="w-5 h-5" />
+        <div className="flex justify-between items-start p-6 pb-4 border-b border-gray-100 bg-white">
+          <div className="flex items-center gap-3">
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${clienteAEditar ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'}`}>
+              {clienteAEditar ? <User size={24} strokeWidth={2.5} /> : <UserPlus size={24} strokeWidth={2.5} />}
+            </div>
+            <div>
+              <h2 className="text-xl font-extrabold text-slate-800 tracking-tight">
+                {clienteAEditar ? 'Editar Cliente' : 'Nuevo Cliente'}
+              </h2>
+              <p className="text-[13px] text-gray-500 mt-0.5 font-medium">Complete los datos personales del cliente</p>
+            </div>
+          </div>
+          <button 
+            onClick={onClose} 
+            className="text-gray-400 hover:bg-gray-100 hover:text-gray-600 p-2 rounded-full transition-colors mt-1"
+          >
+            <X size={20} strokeWidth={2.5} />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1">DNI *</label>
+            <label className="block text-[13px] font-bold text-slate-700 mb-1.5 ml-1">DNI *</label>
             <input 
               type="text" 
               name="dni"
               maxLength="8"
               required
               placeholder="Ej. 74839210"
-              className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full bg-slate-50/50 border border-slate-200 text-slate-800 text-sm rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium placeholder:text-slate-400"
               value={formData.dni}
               onChange={handleChange}
             />
@@ -83,23 +96,25 @@ const ModalClienteRegistro = ({ isOpen, onClose, onClienteRegistrado, clienteAEd
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">Nombres *</label>
+              <label className="block text-[13px] font-bold text-slate-700 mb-1.5 ml-1">Nombres *</label>
               <input 
                 type="text" 
                 name="nombres"
                 required
-                className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                placeholder="Nombres completos"
+                className="w-full bg-slate-50/50 border border-slate-200 text-slate-800 text-sm rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium placeholder:text-slate-400"
                 value={formData.nombres}
                 onChange={handleChange}
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">Apellidos *</label>
+              <label className="block text-[13px] font-bold text-slate-700 mb-1.5 ml-1">Apellidos *</label>
               <input 
                 type="text" 
                 name="apellidos"
                 required
-                className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                placeholder="Apellidos completos"
+                className="w-full bg-slate-50/50 border border-slate-200 text-slate-800 text-sm rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium placeholder:text-slate-400"
                 value={formData.apellidos}
                 onChange={handleChange}
               />
@@ -107,41 +122,43 @@ const ModalClienteRegistro = ({ isOpen, onClose, onClienteRegistrado, clienteAEd
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1">Teléfono</label>
+            <label className="block text-[13px] font-bold text-slate-700 mb-1.5 ml-1">Teléfono</label>
             <input 
               type="text" 
               name="telefono"
-              className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+              placeholder="Número de contacto"
+              className="w-full bg-slate-50/50 border border-slate-200 text-slate-800 text-sm rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium placeholder:text-slate-400"
               value={formData.telefono}
               onChange={handleChange}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1">Dirección</label>
+            <label className="block text-[13px] font-bold text-slate-700 mb-1.5 ml-1">Dirección</label>
             <input 
               type="text" 
               name="direccion"
-              className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+              placeholder="Dirección del domicilio"
+              className="w-full bg-slate-50/50 border border-slate-200 text-slate-800 text-sm rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium placeholder:text-slate-400"
               value={formData.direccion}
               onChange={handleChange}
             />
           </div>
 
-          <div className="flex gap-3 pt-4 mt-2">
+          <div className="flex gap-3 pt-6 pb-2">
             <button 
               type="button" 
               onClick={onClose}
-              className="flex-1 py-2.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold rounded-lg transition-colors"
+              className="flex-1 py-3 bg-gray-50 hover:bg-gray-100 text-gray-600 font-bold rounded-xl transition-colors border border-gray-200"
             >
               Cancelar
             </button>
             <button 
               type="submit" 
               disabled={isSubmitting}
-              className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-70"
+              className="flex-1 py-3 bg-[#10b981] hover:bg-[#059669] text-white font-bold rounded-xl transition-all shadow-md shadow-emerald-500/20 disabled:opacity-70 flex items-center justify-center gap-2"
             >
-              {clienteAEditar ? 'Actualizar Cliente' : 'Registrar Cliente'}
+              {clienteAEditar ? 'Guardar Cambios' : 'Guardar Cliente'}
             </button>
           </div>
         </form>
@@ -151,3 +168,4 @@ const ModalClienteRegistro = ({ isOpen, onClose, onClienteRegistrado, clienteAEd
 };
 
 export default ModalClienteRegistro;
+

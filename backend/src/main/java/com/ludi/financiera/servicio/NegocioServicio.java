@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class NegocioServicio {
@@ -21,10 +23,6 @@ public class NegocioServicio {
         Cliente cliente = clienteRepositorio.findByDni(request.getDniCliente())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente no encontrado"));
 
-        if (negocioRepositorio.findByClienteIdCliente(cliente.getIdCliente()).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El cliente ya tiene un negocio registrado");
-        }
-
         Negocio negocio = new Negocio();
         negocio.setCliente(cliente);
         negocio.setRuc(request.getRuc());
@@ -32,12 +30,12 @@ public class NegocioServicio {
         negocio.setGiroNegocio(request.getGiroNegocio());
         negocio.setDireccion(request.getDireccion());
         negocio.setIngresoPromedioMensual(request.getIngresoPromedioMensual());
+        negocio.setTiempoOperacion(request.getTiempoOperacion());
 
         return negocioRepositorio.save(negocio);
     }
     
-    public Negocio obtenerPorDniCliente(String dni) {
-        return negocioRepositorio.findByClienteDni(dni)
-                .orElse(null); // Optional. Puede retornar null si no tiene negocio
+    public List<Negocio> obtenerPorDniCliente(String dni) {
+        return negocioRepositorio.findByClienteDni(dni);
     }
 }

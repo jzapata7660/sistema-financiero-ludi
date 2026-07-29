@@ -170,7 +170,7 @@ const AutorizacionView = () => {
                       </div>
                     </td>
                     <td className="p-4 font-black text-gray-800 text-[0.95rem]">S/ {s.montoSolicitado?.toFixed(2)}</td>
-                    <td className="p-4 text-gray-600 text-xs">{s.plazoMeses} días</td>
+                    <td className="p-4 text-gray-600 text-xs">{s.plazoMeses} meses</td>
                     <td className="p-4 text-gray-600 text-xs">
                       <span className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-md text-gray-600 font-medium w-fit">
                         🗓️ {s.modalidadPago}

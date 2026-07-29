@@ -28,8 +28,8 @@ public class AccionCobranza {
     private SolicitudCredito solicitud;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "recuperador_id", nullable = false)
-    private Usuario recuperador;
+    @JoinColumn(name = "analista_id", nullable = false)
+    private Usuario analista;
 
     @Column(name = "tipo_accion", nullable = false, length = 50)
     private String tipoAccion; // LLAMADA, VISITA, NOTIFICACION

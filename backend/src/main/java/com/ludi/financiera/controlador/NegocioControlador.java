@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/negocios")
 @RequiredArgsConstructor
@@ -21,11 +23,8 @@ public class NegocioControlador {
     }
 
     @GetMapping("/cliente/{dni}")
-    public ResponseEntity<Negocio> obtenerPorDniCliente(@PathVariable String dni) {
-        Negocio negocio = negocioServicio.obtenerPorDniCliente(dni);
-        if (negocio == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(negocio);
+    public ResponseEntity<List<Negocio>> obtenerPorDniCliente(@PathVariable String dni) {
+        List<Negocio> negocios = negocioServicio.obtenerPorDniCliente(dni);
+        return ResponseEntity.ok(negocios);
     }
 }

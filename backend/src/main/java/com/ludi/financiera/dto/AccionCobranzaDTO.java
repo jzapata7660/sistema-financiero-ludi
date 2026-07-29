@@ -6,6 +6,6 @@ import lombok.Data;
 public class AccionCobranzaDTO {
     private String tipoAccion;
     private String resultado;
-    private Integer recuperadorId;
+    private Integer analistaId;
     private String compromisoPago;
 }

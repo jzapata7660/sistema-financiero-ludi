@@ -13,8 +13,11 @@ import {
 import { apiCobranza } from '../services/apiCobranza';
 import ModalCobranza from '../components/ModalCobranza';
 import ModalRegistrarPago from '../components/ModalRegistrarPago';
+import { useAuth } from '../context/AuthContext';
 
 const CobranzaView = () => {
+  const { user } = useAuth();
+  const currentDate = new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   const [dashboard, setDashboard] = useState(null);
   const [bandeja, setBandeja] = useState([]);
   const [cobranzasHoy, setCobranzasHoy] = useState([]);
@@ -62,21 +65,27 @@ const CobranzaView = () => {
   };
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-6">
+    <div className="space-y-6">
       
       {/* Header */}
-      <div className="flex justify-between items-end">
+      <div className="flex justify-between items-center mb-2 pt-2">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Módulo de Cobranza</h1>
-          <p className="text-slate-500 text-sm">Gestión de cobranza de créditos (≤ 30 días)</p>
+          <h2 className="text-[22px] font-extrabold text-slate-800 tracking-tight">Módulo de Cobranza</h2>
+          <p className="text-sm text-gray-500 mt-0.5 font-medium">Gestión de cobranza de créditos (≤ 30 días)</p>
         </div>
-        <button 
-          onClick={cargarDatos}
-          className="flex items-center gap-2 text-slate-500 hover:text-slate-700 bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm"
-        >
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          Actualizar
-        </button>
+        <div className="flex items-center gap-5">
+          <div className="text-right">
+            <p className="text-sm font-bold text-slate-800 capitalize">{currentDate}</p>
+            <p className="text-[13px] text-gray-400 font-medium">{user?.agencia?.nombre || 'Agencia Principal - Piura'}</p>
+          </div>
+          <button 
+            onClick={cargarDatos}
+            className="flex items-center gap-2 text-slate-500 hover:text-slate-700 bg-white px-4 py-2.5 rounded-lg border border-slate-200 shadow-sm transition-colors font-medium text-sm"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            Actualizar
+          </button>
+        </div>
       </div>
 
       {/* Dashboard Cards */}

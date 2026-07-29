@@ -25,6 +25,7 @@ public class SolicitudServicio {
     private final CronogramaRepositorio cronogramaRepositorio;
     private final CuotaRepositorio cuotaRepositorio;
     private final ExpedienteRepositorio expedienteRepositorio;
+    private final NegocioRepositorio negocioRepositorio;
 
     @Transactional
     public SolicitudCredito crearSolicitud(SolicitudRequest req) {
@@ -34,12 +35,16 @@ public class SolicitudServicio {
         Usuario analista = usuarioRepositorio.findById(req.getAnalistaId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Analista no encontrado"));
 
+        Negocio negocio = negocioRepositorio.findById(req.getNegocioId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Negocio no encontrado"));
+
         // Generar código de solicitud único
         String codigo = "SOL-" + System.currentTimeMillis();
 
         SolicitudCredito solicitud = new SolicitudCredito();
         solicitud.setCodigoSolicitud(codigo);
         solicitud.setCliente(cliente);
+        solicitud.setNegocio(negocio);
         solicitud.setAnalista(analista);
         solicitud.setMontoSolicitado(req.getMonto());
         solicitud.setPlazoMeses(req.getPlazoMeses());

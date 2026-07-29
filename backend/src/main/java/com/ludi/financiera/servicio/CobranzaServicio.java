@@ -43,7 +43,7 @@ public class CobranzaServicio {
     }
 
     public List<CuotaCobranzaDTO> obtenerBandeja() {
-        List<Cuota> cuotas = cuotaRepositorio.findBandejaCobranza();
+        List<Cuota> cuotas = cuotaRepositorio.findBandejaCobranza(LocalDate.now().plusDays(7));
         
         // Filter to keep only the earliest pending/overdue quota per credit (cronograma)
         java.util.Set<Integer> cronogramasProcesados = new java.util.HashSet<>();
@@ -122,23 +122,47 @@ public class CobranzaServicio {
     public void registrarPago(Integer idCuota, RegistroPagoDTO request) {
         Cuota cuota = cuotaRepositorio.findById(idCuota)
                 .orElseThrow(() -> new RuntimeException("Cuota no encontrada"));
+        
+        if (request.getAnalistaId() == null) {
+            throw new RuntimeException("Analista no especificado");
+        }
                 
-        Usuario cajera = usuarioRepositorio.findById(request.getCajeraId())
-                .orElseThrow(() -> new RuntimeException("Cajera no encontrada"));
+        Usuario analista = usuarioRepositorio.findById(request.getAnalistaId())
+                .orElseThrow(() -> new RuntimeException("Analista no encontrado"));
 
+        // 1. Validar el monto antes de guardar
+        List<Pago> pagosAnteriores = pagoRepositorio.findByCuotaIdCuota(cuota.getIdCuota());
+        double totalPagadoAnterior = pagosAnteriores.stream().mapToDouble(Pago::getMontoPagado).sum();
+        double saldoPendiente = cuota.getMontoTotal() - totalPagadoAnterior;
+        
+        // Redondeo para evitar problemas de coma flotante (ej: 6.5499999997)
+        saldoPendiente = Math.round(saldoPendiente * 100.0) / 100.0;
+        double montoRecibido = Math.round(request.getMontoRecibido() * 100.0) / 100.0;
+
+        double moraCalculada = 0.0;
+        if (montoRecibido > saldoPendiente) {
+            moraCalculada = Math.round((montoRecibido - saldoPendiente) * 100.0) / 100.0;
+        }
+
+        // 2. Guardar el pago
         Pago pago = new Pago();
         pago.setCuota(cuota);
-        pago.setCajera(cajera);
-        pago.setMontoPagado(request.getMontoRecibido());
+        pago.setAnalista(analista);
+        pago.setMontoPagado(montoRecibido);
         pago.setFormaPago(request.getFormaPago());
         pago.setObservaciones(request.getObservaciones());
+        pago.setNumeroCuota(cuota.getNumeroCuota());
         
-        // Asignamos la fecha de pago desde request si viene, sino usa CreationTimestamp
+        // El saldo pendiente será 0 si pagó todo o más (mora).
+        double nuevoSaldo = Math.max(0, Math.round((saldoPendiente - montoRecibido) * 100.0) / 100.0);
+        pago.setSaldoPendiente(nuevoSaldo);
+        pago.setMoraPagada(moraCalculada);
+        
+        // La fecha de pago se asigna sola por @CreationTimestamp
         pagoRepositorio.save(pago);
 
-        // Sumamos pagos anteriores + nuevo pago
-        List<Pago> pagosAnteriores = pagoRepositorio.findByCuotaIdCuota(cuota.getIdCuota());
-        double sumaTotal = pagosAnteriores.stream().mapToDouble(Pago::getMontoPagado).sum() + request.getMontoRecibido();
+        // 3. Actualizar estado de cuota si se completó
+        double sumaTotal = totalPagadoAnterior + request.getMontoRecibido();
 
         if (sumaTotal >= cuota.getMontoTotal()) {
             cuota.setEstado("PAGADA");
@@ -151,13 +175,13 @@ public class CobranzaServicio {
         SolicitudCredito solicitud = solicitudRepositorio.findById(idSolicitud)
                 .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
         
-        Usuario recuperador = usuarioRepositorio.findById(dto.getRecuperadorId())
-                .orElseThrow(() -> new RuntimeException("Recuperador no encontrado"));
+        Usuario analista = usuarioRepositorio.findById(dto.getAnalistaId())
+                .orElseThrow(() -> new RuntimeException("Analista no encontrado"));
 
         AccionCobranza accion = new AccionCobranza();
         accion.setSolicitud(solicitud);
         accion.setCliente(solicitud.getCliente());
-        accion.setRecuperador(recuperador);
+        accion.setAnalista(analista);
         accion.setTipoAccion(dto.getTipoAccion());
         accion.setResultado(dto.getResultado());
         

@@ -2,10 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Clock, CheckCircle, Coins, Search, Eye, Filter, Banknote, History } from 'lucide-react';
 import { apiCaja } from '../services/apiCaja';
 import ModalDesembolso from '../components/ModalDesembolso';
+import { useAuth } from '../context/AuthContext';
 
 const CajaView = () => {
   const [pendientes, setPendientes] = useState([]);
   const [historial, setHistorial] = useState([]);
+  const { user } = useAuth();
+  const currentDate = new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedExpediente, setSelectedExpediente] = useState(null);
@@ -61,8 +64,8 @@ const CajaView = () => {
         </div>
         <div className="text-right flex items-center gap-4">
           <div>
-            <p className="text-sm font-semibold text-slate-800">{new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-            <p className="text-xs text-slate-500">Agencia Principal - Piura</p>
+            <p className="text-sm font-semibold text-slate-800 capitalize">{currentDate}</p>
+            <p className="text-xs text-slate-500">{user?.agencia?.nombre || 'Agencia Principal - Piura'}</p>
           </div>
           <div className="relative">
             <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center">

@@ -1,17 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import api from '../services/api';
 import { FileText, CheckCircle, Clock, Users, Zap, TrendingUp, Bell, DollarSign } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const data = [
-  { name: 'Ene', colocaciones: 4000, cobranzas: 2400, morosidad: 2400 },
-  { name: 'Feb', colocaciones: 3000, cobranzas: 1398, morosidad: 2210 },
-  { name: 'Mar', colocaciones: 2000, cobranzas: 9800, morosidad: 2290 },
-  { name: 'Abr', colocaciones: 2780, cobranzas: 3908, morosidad: 2000 },
-  { name: 'May', colocaciones: 1890, cobranzas: 4800, morosidad: 2181 },
-  { name: 'Jun', colocaciones: 2390, cobranzas: 3800, morosidad: 2500 },
-  { name: 'Jul', colocaciones: 3490, cobranzas: 4300, morosidad: 2100 },
-];
+// El data ahora vendrá del estado
 
 const StatCard = ({ title, value, icon, color, bgColor }) => (
   <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow">
@@ -27,6 +21,33 @@ const StatCard = ({ title, value, icon, color, bgColor }) => (
 
 const AnalistaDashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const currentDate = new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  
+  const [stats, setStats] = useState({
+    solicitudesPendientes: 0,
+    solicitudesAprobadas: 0,
+    cobranzasVencidas: 0,
+    clientesActivos: 0,
+    alertas: [],
+    totalColocaciones: 0.0,
+    totalCobranzas: 0.0,
+    porcentajeMorosidad: 0.0,
+    tendencias: []
+  });
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const response = await api.get('/dashboard');
+        setStats(response.data);
+      } catch (error) {
+        console.error("Error fetching dashboard data", error);
+      }
+    };
+    fetchDashboardData();
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -38,14 +59,34 @@ const AnalistaDashboard = () => {
         </div>
         <div className="flex items-center gap-5">
           <div className="text-right">
-            <p className="text-sm font-bold text-slate-800">domingo, 19 de julio de 2026</p>
-            <p className="text-[13px] text-gray-400 font-medium">Agencia Principal - Piura</p>
+            <p className="text-sm font-bold text-slate-800 capitalize">{currentDate}</p>
+            <p className="text-[13px] text-gray-400 font-medium">{user?.agencia?.nombre || 'Agencia Principal - Piura'}</p>
           </div>
-          <div className="relative cursor-pointer bg-blue-100/50 p-2.5 rounded-full hover:bg-blue-100 transition-colors">
+          <div className="relative cursor-pointer bg-blue-100/50 p-2.5 rounded-full hover:bg-blue-100 transition-colors" onClick={() => setShowNotifications(!showNotifications)}>
             <Bell size={20} className="fill-blue-600 text-blue-600" />
-            <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border border-white">
-              8
-            </span>
+            {stats.alertas.length > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border border-white">
+                {stats.alertas.length}
+              </span>
+            )}
+            
+            {showNotifications && (
+              <div className="absolute top-12 right-0 w-80 bg-white shadow-lg rounded-xl border border-gray-100 p-4 z-50">
+                <h4 className="font-bold text-gray-800 mb-3 border-b pb-2">Notificaciones</h4>
+                {stats.alertas.length === 0 ? (
+                  <p className="text-sm text-gray-500">No tienes notificaciones recientes.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {stats.alertas.map((alerta, idx) => (
+                      <div key={idx} className={`border-l-2 ${alerta.tipo === 'RED' ? 'border-red-500' : 'border-amber-500'} pl-3 py-1`}>
+                        <p className="text-sm font-bold text-gray-800">{alerta.titulo}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{alerta.subtitulo}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -70,28 +111,28 @@ const AnalistaDashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard 
               title="Solicitudes Pendientes" 
-              value="2" 
+              value={stats.solicitudesPendientes} 
               icon={<FileText size={24} />} 
               color="text-blue-600" 
               bgColor="bg-blue-50" 
             />
             <StatCard 
               title="Aprobadas" 
-              value="2" 
+              value={stats.solicitudesAprobadas} 
               icon={<CheckCircle size={24} />} 
               color="text-green-600" 
               bgColor="bg-green-50" 
             />
             <StatCard 
               title="Cobranzas Vencidas" 
-              value="5" 
+              value={stats.cobranzasVencidas} 
               icon={<Clock size={24} />} 
               color="text-amber-500" 
               bgColor="bg-amber-50" 
             />
             <StatCard 
               title="Clientes Activos" 
-              value="1" 
+              value={stats.clientesActivos} 
               icon={<Users size={24} />} 
               color="text-purple-600" 
               bgColor="bg-purple-50" 
@@ -109,21 +150,21 @@ const AnalistaDashboard = () => {
           <div className="grid grid-cols-3 gap-4 mb-4 text-center">
              <div className="p-3 border border-gray-100 rounded-lg">
                <p className="text-xs text-gray-500 font-semibold">Colocaciones</p>
-               <p className="text-xl font-bold text-blue-600">S/ 19,570</p>
+               <p className="text-xl font-bold text-blue-600">S/ {stats.totalColocaciones?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
              </div>
              <div className="p-3 border border-gray-100 rounded-lg">
                <p className="text-xs text-gray-500 font-semibold">Cobranzas</p>
-               <p className="text-xl font-bold text-green-600">S/ 12,400</p>
+               <p className="text-xl font-bold text-green-600">S/ {stats.totalCobranzas?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
              </div>
              <div className="p-3 border border-gray-100 rounded-lg">
                <p className="text-xs text-gray-500 font-semibold">Morosidad</p>
-               <p className="text-xl font-bold text-red-500">12.5%</p>
+               <p className="text-xl font-bold text-red-500">{stats.porcentajeMorosidad}%</p>
              </div>
           </div>
 
           <div className="h-[250px] w-full mt-6">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data}>
+              <BarChart data={stats.tendencias}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} dy={10} />
                 <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} dx={-10} />
@@ -146,19 +187,19 @@ const AnalistaDashboard = () => {
             <h3 className="font-bold text-gray-800">Accesos Rápidos</h3>
           </div>
           <div className="space-y-3">
-            <button className="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 transition-all text-gray-600 text-sm font-medium">
+            <button onClick={() => navigate('/dashboard/solicitudes')} className="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 transition-all text-gray-600 text-sm font-medium">
               <div className="bg-blue-100 p-1.5 rounded text-blue-600"><FileText size={16} /></div>
               Solicitudes Pendientes
             </button>
-            <button className="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 transition-all text-gray-600 text-sm font-medium">
+            <button onClick={() => navigate('/dashboard/cobranza')} className="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 transition-all text-gray-600 text-sm font-medium">
               <div className="bg-blue-100 p-1.5 rounded text-blue-600"><DollarSign size={16} /></div>
               Cobranza Diaria
             </button>
-            <button className="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 transition-all text-gray-600 text-sm font-medium">
+            <button onClick={() => navigate('/dashboard/clientes')} className="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 transition-all text-gray-600 text-sm font-medium">
               <div className="bg-blue-100 p-1.5 rounded text-blue-600"><Users size={16} /></div>
               Gestionar Clientes
             </button>
-            <button className="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 transition-all text-gray-600 text-sm font-medium">
+            <button onClick={() => navigate('/dashboard/reportes')} className="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 transition-all text-gray-600 text-sm font-medium">
               <div className="bg-blue-100 p-1.5 rounded text-blue-600"><TrendingUp size={16} /></div>
               Generar Reportes
             </button>
@@ -175,14 +216,16 @@ const AnalistaDashboard = () => {
             <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium">Recientes</span>
           </div>
           <div className="space-y-4">
-            <div className="border-l-2 border-amber-500 pl-3 py-1">
-              <p className="text-sm font-bold text-gray-800">PR-018 - Ana Torres Mendoza</p>
-              <p className="text-xs text-gray-500 mt-0.5">Solicitud pendiente de evaluación</p>
-            </div>
-            <div className="border-l-2 border-red-500 pl-3 py-1">
-              <p className="text-sm font-bold text-gray-800">PR-017 - Lucía Ramírez Paredes</p>
-              <p className="text-xs text-gray-500 mt-0.5">Cuota vencida hace 2 días</p>
-            </div>
+            {stats.alertas.length === 0 ? (
+              <p className="text-sm text-gray-500">No hay alertas pendientes.</p>
+            ) : (
+              stats.alertas.map((alerta, idx) => (
+                <div key={idx} className={`border-l-2 ${alerta.tipo === 'RED' ? 'border-red-500' : 'border-amber-500'} pl-3 py-1`}>
+                  <p className="text-sm font-bold text-gray-800">{alerta.titulo}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{alerta.subtitulo}</p>
+                </div>
+              ))
+            )}
           </div>
         </div>
 

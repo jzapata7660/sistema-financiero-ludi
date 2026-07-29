@@ -19,6 +19,10 @@ public class Usuario {
     @JoinColumn(name = "rol_id", nullable = false)
     private Rol rol;
 
+    @ManyToOne
+    @JoinColumn(name = "agencia_id")
+    private Agencia agencia;
+
     @Column(nullable = false, length = 100)
     private String nombres;
 

@@ -32,7 +32,7 @@ public class HistorialCrediticio {
 
     @Column(name = "score_crediticio")
     private Integer scoreCrediticio;
-    
+
     @Column(name = "ultima_operacion")
     private java.time.LocalDate ultimaOperacion;
 }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Folder, Clock, CheckCircle, XCircle, Plus, Eye, List, User, Calendar, Bell } from 'lucide-react';
+import { Folder, Clock, CheckCircle, XCircle, Plus, Eye, List, User, Calendar, RefreshCw } from 'lucide-react';
 import { apiSolicitud } from '../services/apiSolicitud';
 import FormularioSolicitudModal from '../components/FormularioSolicitudModal';
 import AutorizacionModal from '../components/AutorizacionModal';
@@ -43,6 +43,7 @@ const StatCard = ({ title, value, icon, borderColor, iconBgColor, iconColor }) =
 
 const SolicitudesView = () => {
   const { user } = useAuth();
+  const currentDate = new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   const [solicitudes, setSolicitudes] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [showAutorizacionModal, setShowAutorizacionModal] = useState(false);
@@ -92,15 +93,17 @@ const SolicitudesView = () => {
         </div>
         <div className="flex items-center gap-5">
           <div className="text-right">
-            <p className="text-sm font-bold text-slate-800">domingo, 19 de julio de 2026</p>
-            <p className="text-[13px] text-gray-400 font-medium">Agencia Principal - Piura</p>
+            <p className="text-sm font-bold text-slate-800 capitalize">{currentDate}</p>
+            <p className="text-[13px] text-gray-400 font-medium">{user?.agencia?.nombre || 'Agencia Principal - Piura'}</p>
           </div>
-          <div className="relative cursor-pointer bg-blue-100/50 p-2.5 rounded-full hover:bg-blue-100 transition-colors">
-            <Bell size={20} className="fill-blue-600 text-blue-600" />
-            <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border border-white">
-              8
-            </span>
-          </div>
+          <button 
+            onClick={cargarSolicitudes}
+            disabled={loading}
+            className="flex items-center gap-2 text-slate-500 hover:text-slate-700 bg-white px-4 py-2.5 rounded-lg border border-slate-200 shadow-sm transition-colors font-medium text-sm disabled:opacity-50"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            Actualizar
+          </button>
         </div>
       </div>
 
@@ -167,7 +170,7 @@ const SolicitudesView = () => {
                     <td className="px-6 py-4 font-bold text-slate-800 text-[15px]">
                       S/ {s.montoSolicitado?.toFixed(2)}
                     </td>
-                    <td className="px-6 py-4 text-gray-600 font-medium text-[13px]">{s.plazoMeses} días</td>
+                    <td className="px-6 py-4 text-gray-600 font-medium text-[13px]">{s.plazoMeses} meses</td>
                     <td className="px-6 py-4">
                       <span className="inline-flex items-center gap-1.5 bg-gray-100/80 px-2.5 py-1.5 rounded-full text-[11px] font-bold text-gray-600">
                         <Calendar size={13} className="text-gray-500" />

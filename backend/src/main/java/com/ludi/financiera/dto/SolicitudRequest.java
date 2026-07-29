@@ -5,6 +5,7 @@ import lombok.Data;
 @Data
 public class SolicitudRequest {
     private String dniCliente;
+    private Integer negocioId;
     private Integer analistaId;
     private Double monto;
     private Integer plazoMeses;

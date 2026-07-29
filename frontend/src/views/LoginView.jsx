@@ -94,13 +94,6 @@ const LoginView = () => {
               </div>
             </div>
 
-            {/* Forgot Password Link */}
-            <div className="text-left mt-1">
-              <a href="#" className="text-[0.85rem] text-[#2563eb] hover:underline">
-                ¿Olvidaste tu contraseña?
-              </a>
-            </div>
-
             {/* Submit Button */}
             <button
               type="submit"

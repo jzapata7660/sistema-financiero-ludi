@@ -33,6 +33,6 @@ public class CronogramaPagos {
     @Column(name = "total_pagar", nullable = false)
     private Double totalPagar;
 
-    @OneToMany(mappedBy = "cronograma", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "cronograma", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Cuota> cuotas;
 }

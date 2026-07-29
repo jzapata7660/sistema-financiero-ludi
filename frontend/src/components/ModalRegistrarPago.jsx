@@ -1,15 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, DollarSign, Calendar, Info, CheckCircle } from 'lucide-react';
 import { apiCobranza } from '../services/apiCobranza';
 import { useAuth } from '../context/AuthContext';
 
 const ModalRegistrarPago = ({ isOpen, onClose, cuota, onPagoRegistrado }) => {
   const { user } = useAuth();
-  const [montoRecibido, setMontoRecibido] = useState(cuota?.montoTotal || '');
+  const saldoPendiente = cuota?.saldoPendiente !== undefined ? cuota.saldoPendiente : cuota?.montoTotal;
+  const [montoRecibido, setMontoRecibido] = useState(saldoPendiente || '');
   const [fechaPago, setFechaPago] = useState(new Date().toISOString().split('T')[0]);
   const [formaPago, setFormaPago] = useState('Efectivo');
   const [observaciones, setObservaciones] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const diasAtraso = cuota?.diasAtraso > 0 ? cuota.diasAtraso : 0;
+  const moraSugerida = diasAtraso * 5.0;
+  const totalSugerido = saldoPendiente + moraSugerida;
+
+  useEffect(() => {
+    if (isOpen && cuota) {
+      setMontoRecibido(totalSugerido > 0 ? totalSugerido.toFixed(2) : '');
+      setFechaPago(new Date().toISOString().split('T')[0]);
+      setFormaPago('Efectivo');
+      setObservaciones(diasAtraso > 0 ? `Pago atrasado con mora incluida (S/ ${moraSugerida.toFixed(2)})` : '');
+    }
+  }, [isOpen, cuota, saldoPendiente, totalSugerido, diasAtraso, moraSugerida]);
 
   if (!isOpen || !cuota) return null;
 
@@ -22,7 +36,7 @@ const ModalRegistrarPago = ({ isOpen, onClose, cuota, onPagoRegistrado }) => {
         fechaPago,
         formaPago,
         observaciones,
-        cajeraId: user.idUsuario
+        analistaId: user.idUsuario
       });
       onPagoRegistrado();
       onClose();
@@ -34,7 +48,7 @@ const ModalRegistrarPago = ({ isOpen, onClose, cuota, onPagoRegistrado }) => {
     }
   };
 
-  const isParcial = parseFloat(montoRecibido) < cuota.montoTotal;
+  const isParcial = parseFloat(montoRecibido) < totalSugerido;
 
   return (
     <div className="fixed inset-0 bg-slate-900/50 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
@@ -50,8 +64,26 @@ const ModalRegistrarPago = ({ isOpen, onClose, cuota, onPagoRegistrado }) => {
         <div className="text-center mt-4 px-6">
           <h2 className="text-xl font-bold text-slate-800">Registrar Pago</h2>
           <p className="text-slate-500 text-sm mt-1">
-            Cuota Nº {cuota.numeroCuota}/{cuota.totalCuotas} - Monto: <span className="font-semibold text-slate-700">S/ {parseFloat(cuota.montoTotal).toFixed(2)}</span>
+            Cuota Nº {cuota.numeroCuota}/{cuota.totalCuotas} - Total: <span className="font-semibold text-slate-700">S/ {parseFloat(cuota.montoTotal).toFixed(2)}</span>
+            <br />
+            Saldo Pendiente: <span className="font-bold text-emerald-600">S/ {parseFloat(saldoPendiente).toFixed(2)}</span>
           </p>
+          {diasAtraso > 0 && (
+            <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg p-3 text-left">
+              <div className="flex items-start gap-2">
+                <Info className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-amber-800">Cuota Vencida ({diasAtraso} días)</p>
+                  <p className="text-xs text-amber-700 mt-0.5">
+                    Mora calculada sugerida: <strong>S/ {moraSugerida.toFixed(2)}</strong> (S/ 5.00 x día)
+                  </p>
+                  <p className="text-xs font-semibold text-amber-900 mt-1">
+                    Total sugerido a cobrar: S/ {totalSugerido.toFixed(2)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
@@ -61,10 +93,17 @@ const ModalRegistrarPago = ({ isOpen, onClose, cuota, onPagoRegistrado }) => {
             <input 
               type="number" 
               step="0.01" 
-              required
+              max={saldoPendiente}
               className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 outline-none"
               value={montoRecibido}
-              onChange={e => setMontoRecibido(e.target.value)}
+              onChange={e => {
+                let val = parseFloat(e.target.value);
+                if (val > saldoPendiente) {
+                  setMontoRecibido(saldoPendiente);
+                } else {
+                  setMontoRecibido(e.target.value);
+                }
+              }}
             />
           </div>
 
@@ -74,7 +113,8 @@ const ModalRegistrarPago = ({ isOpen, onClose, cuota, onPagoRegistrado }) => {
               <input 
                 type="date" 
                 required
-                className="w-full border border-slate-300 rounded-lg p-2 pl-3 pr-10 focus:ring-2 focus:ring-emerald-500 outline-none"
+                disabled
+                className="w-full bg-slate-100 text-slate-500 border border-slate-200 rounded-lg p-2 pl-3 pr-10 outline-none cursor-not-allowed"
                 value={fechaPago}
                 onChange={e => setFechaPago(e.target.value)}
               />

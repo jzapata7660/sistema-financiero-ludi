@@ -8,5 +8,5 @@ public class RegistroPagoDTO {
     private String fechaPago;
     private String formaPago;
     private String observaciones;
-    private Integer cajeraId;
+    private Integer analistaId;
 }

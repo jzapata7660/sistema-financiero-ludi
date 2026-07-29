@@ -37,7 +37,7 @@ const ModalCobranza = ({ isOpen, onClose, cuota, onRegistrarPago }) => {
       await apiCobranza.registrarAccion(idSolicitud, {
         tipoAccion: datos.tipoAccion,
         resultado: datos.resultado + (datos.observaciones ? ` - ${datos.observaciones}` : ''),
-        recuperadorId: user.idUsuario
+        analistaId: user.idUsuario
       });
       // Optionally show a success toast here
       // Recargar historial
@@ -57,7 +57,7 @@ const ModalCobranza = ({ isOpen, onClose, cuota, onRegistrarPago }) => {
     // Implement logic for deriving
     handleConfirmAction({
       tipoAccion: 'Derivación',
-      resultado: 'Caso derivado a recuperador',
+      resultado: 'Caso derivado a jefe de cobranza',
       observaciones: ''
     });
   };
@@ -163,7 +163,7 @@ const ModalCobranza = ({ isOpen, onClose, cuota, onRegistrarPago }) => {
 
               <button onClick={handleDerivacion} className="flex flex-col text-left p-4 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 transition-colors">
                 <AlertTriangle className="w-6 h-6 text-rose-600 mb-2" />
-                <span className="font-bold text-rose-800 text-sm">Derivar a Recuperador</span>
+                <span className="font-bold text-rose-800 text-sm">Derivar</span>
                 <span className="text-xs text-rose-600 mt-1">Escala el caso por mora</span>
               </button>
             </div>
@@ -197,7 +197,7 @@ const ModalCobranza = ({ isOpen, onClose, cuota, onRegistrarPago }) => {
           </div>
           <div>
             <p className="text-sm font-bold text-slate-800">Derivación no permitida</p>
-            <p className="text-xs text-slate-500">Solo se deriva a recuperador cuando la mora supera los 30 días.</p>
+            <p className="text-xs text-slate-500">Solo se deriva cuando la mora supera los 30 días.</p>
           </div>
         </div>
       )}
