@@ -173,7 +173,6 @@ const ClientesView = () => {
                   <td className="py-4 px-6">
                     <div>
                       <p className="text-sm font-semibold text-slate-800">{cliente.nombres} {cliente.apellidos}</p>
-                      <p className="text-xs text-slate-500">Score {cliente.scoreCrediticio || 0} | {cliente.creditosAnteriores || 0} créditos externos</p>
                     </div>
                   </td>
                   <td className="py-4 px-6">

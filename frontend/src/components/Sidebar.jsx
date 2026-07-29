@@ -24,31 +24,46 @@ const Sidebar = () => {
     navigate('/login');
   };
 
-  const isAnalista = user?.rol === 'ANALISTA';
-  const isCajera = user?.rol === 'CAJERA';
+  const getNavItems = (rol) => {
+    switch(rol) {
+      case 'ANALISTA':
+        return [
+          { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
+          { name: 'Solicitudes', path: '/dashboard/solicitudes', icon: <FileText size={20} />, badge: 3 },
+          { name: 'Cobranza', path: '/dashboard/cobranza', icon: <DollarSign size={20} />, badge: 5 },
+          { name: 'Clientes', path: '/dashboard/clientes', icon: <Users size={20} /> },
+          { name: 'Reportes', path: '/dashboard/reportes', icon: <BarChart2 size={20} /> },
+        ];
+      case 'CAJERA':
+        return [
+          { name: 'Caja', path: '/dashboard/caja', icon: <DollarSign size={20} /> },
+        ];
+      case 'RECUPERADOR':
+        return [
+          { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
+          { name: 'Cartera Pesada', path: '/dashboard/cartera-pesada', icon: <ShieldCheck size={20} /> },
+          { name: 'Reportes', path: '/dashboard/reportes', icon: <BarChart2 size={20} /> },
+        ];
+      case 'ARCHIVO':
+        return [
+          { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
+          { name: 'Expedientes', path: '/dashboard/expedientes', icon: <FolderOpen size={20} /> },
+        ];
+      case 'GERENTE':
+      case 'ADMINISTRADOR_CREDITOS':
+      default:
+        return [
+          { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
+          { name: 'Autorización', path: '/dashboard/autorizacion', icon: <ShieldCheck size={20} /> },
+          { name: 'Expedientes', path: '/dashboard/expedientes', icon: <FolderOpen size={20} /> },
+          { name: 'Reportes', path: '/dashboard/reportes', icon: <BarChart2 size={20} /> },
+          { name: 'Analistas', path: '/dashboard/analistas', icon: <Users size={20} /> },
+          { name: 'Configuración', path: '/dashboard/configuracion', icon: <Settings size={20} /> },
+        ];
+    }
+  };
 
-  const navItemsAnalista = [
-    { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
-    { name: 'Solicitudes', path: '/dashboard/solicitudes', icon: <FileText size={20} />, badge: 3 },
-    { name: 'Cobranza', path: '/dashboard/cobranza', icon: <DollarSign size={20} />, badge: 5 },
-    { name: 'Clientes', path: '/dashboard/clientes', icon: <Users size={20} /> },
-    { name: 'Reportes', path: '/dashboard/reportes', icon: <BarChart2 size={20} /> },
-  ];
-
-  const navItemsCajera = [
-    { name: 'Desembolsos', path: '/dashboard/caja', icon: <DollarSign size={20} /> },
-  ];
-
-  const navItemsAdmin = [
-    { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
-    { name: 'Autorización', path: '/dashboard/autorizacion', icon: <ShieldCheck size={20} /> },
-    { name: 'Expedientes', path: '/dashboard/expedientes', icon: <FolderOpen size={20} /> },
-    { name: 'Reportes', path: '/dashboard/reportes', icon: <BarChart2 size={20} /> },
-    { name: 'Analistas', path: '/dashboard/analistas', icon: <Users size={20} /> },
-    { name: 'Configuración', path: '/dashboard/configuracion', icon: <Settings size={20} /> },
-  ];
-
-  const navItems = isAnalista ? navItemsAnalista : isCajera ? navItemsCajera : navItemsAdmin;
+  const navItems = getNavItems(user?.rol);
 
   return (
     <div className="w-64 bg-slate-900 min-h-screen text-slate-300 flex flex-col shadow-2xl flex-shrink-0 relative overflow-hidden">

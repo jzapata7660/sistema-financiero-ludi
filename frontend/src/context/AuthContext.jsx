@@ -26,9 +26,18 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('ludi_user', JSON.stringify(userData));
       return { success: true };
     } catch (error) {
+      const status = error.response?.status;
+      let msg = 'Error al iniciar sesión';
+      if (status === 401) {
+        msg = 'Credenciales incorrectas. Por favor, intente de nuevo';
+      } else if (status === 403) {
+        msg = 'Acceso denegado - Su cuenta se encuentra inactiva. Contacte a Gerencia';
+      } else if (error.response?.data?.message) {
+        msg = error.response.data.message;
+      }
       return { 
         success: false, 
-        message: error.response?.data?.message || 'Error al iniciar sesión'
+        message: msg
       };
     }
   };

@@ -34,6 +34,8 @@ function App() {
           <Route path="cobranza" element={<CobranzaView />} />
           <Route path="clientes" element={<ClientesView />} />
           <Route path="caja" element={<CajaView />} />
+          <Route path="cartera-pesada" element={<div className="p-8 bg-white rounded-lg shadow-sm border border-red-200"><h2 className="text-xl font-bold text-red-600">Módulo de Cartera Pesada en construcción...</h2><p className="text-slate-500 mt-2">Este módulo será exclusivo para el Recuperador de Créditos.</p></div>} />
+          <Route path="expedientes" element={<div className="p-8 bg-white rounded-lg shadow-sm"><h2 className="text-xl font-bold text-blue-600">Módulo de Gestión Documental en construcción...</h2><p className="text-slate-500 mt-2">Aquí se registrarán y validarán los expedientes físicos.</p></div>} />
           <Route path="reportes" element={<div className="p-8 bg-white rounded-lg shadow-sm"><h2 className="text-xl font-bold">Módulo de Reportes en construcción...</h2></div>} />
           
         </Route>

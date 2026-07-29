@@ -87,7 +87,7 @@ const LoginView = () => {
                   type="password"
                   value={clave}
                   onChange={(e) => setClave(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#cbd5e1] rounded text-[#334155] placeholder-[#94a3b8] focus:outline-none focus:border-[#1e3a8a] focus:ring-1 focus:ring-[#1e3a8a] transition-colors text-[0.95rem]"
+                  className={`w-full pl-10 pr-4 py-2.5 bg-white border rounded text-[#334155] placeholder-[#94a3b8] focus:outline-none focus:ring-1 transition-colors text-[0.95rem] ${error?.includes('Credenciales incorrectas') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-[#cbd5e1] focus:border-[#1e3a8a] focus:ring-[#1e3a8a]'}`}
                   placeholder="••••••••"
                   required
                 />
