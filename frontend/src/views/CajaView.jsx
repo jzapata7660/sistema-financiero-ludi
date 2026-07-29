@@ -55,12 +55,12 @@ const CajaView = () => {
   const montoTotalHoy = historial.reduce((sum, h) => sum + h.monto, 0);
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-2 pt-2">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Módulo de Transacciones - Caja</h1>
-          <p className="text-slate-500 text-sm mt-1">Ejecución de desembolsos y operaciones de caja</p>
+          <h2 className="text-[22px] font-extrabold text-slate-800 tracking-tight">Módulo de Transacciones - Caja</h2>
+          <p className="text-sm text-gray-500 mt-0.5 font-medium">Ejecución de desembolsos y operaciones de caja</p>
         </div>
         <div className="text-right flex items-center gap-4">
           <div>
@@ -111,7 +111,7 @@ const CajaView = () => {
         <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 border-l-4 border-l-purple-500 flex justify-between items-center">
           <div>
             <p className="text-xs font-bold text-slate-500 mb-1">SALDO EN CAJA</p>
-            <p className="text-2xl font-bold text-slate-800">S/ {(12450.00 - montoTotalHoy).toFixed(2)}</p>
+            <p className="text-2xl font-bold text-slate-800">S/ {(85000.00 - montoTotalHoy).toFixed(2)}</p>
           </div>
           <div className="bg-purple-100 p-3 rounded-xl text-purple-600">
             <Banknote className="w-6 h-6" />
@@ -199,7 +199,7 @@ const CajaView = () => {
                     <td className="py-4 px-6 text-center">
                       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200">
                         <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                        Pendiente
+                        Aprobada
                       </span>
                     </td>
                     <td className="py-4 px-6 text-center">

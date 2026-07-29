@@ -166,7 +166,7 @@ const ModalDesembolso = ({ isOpen, onClose, expediente, onSuccess }) => {
               <div>
                 <p className="text-xs text-amber-700 mb-1">Estado Actual</p>
                 <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
-                  Pendiente de Desembolso
+                  Aprobada
                 </span>
               </div>
             </div>
