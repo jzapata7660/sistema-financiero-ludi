@@ -36,6 +36,7 @@ const FormularioSolicitudModal = ({ onClose, onSaveSuccess }) => {
   const [pasoActual, setPasoActual] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [solicitudGuardada, setSolicitudGuardada] = useState(null);
 
   // Estados del formulario
   const [cliente, setCliente] = useState(null);
@@ -175,8 +176,8 @@ const FormularioSolicitudModal = ({ onClose, onSaveSuccess }) => {
         modalidadPago: condiciones.modalidadPago,
         evaluacion
       };
-      await apiSolicitud.crearSolicitud(payload);
-      onSaveSuccess();
+      const resp = await apiSolicitud.crearSolicitud(payload);
+      setSolicitudGuardada(resp);
     } catch (err) {
       setError(err.response?.data?.message || 'Error al guardar la solicitud');
     } finally {
@@ -203,6 +204,44 @@ const FormularioSolicitudModal = ({ onClose, onSaveSuccess }) => {
 
   return (
     <div className="fixed inset-0 bg-slate-900/40 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+      {solicitudGuardada ? (
+        <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-8 text-center animate-fade-in relative z-[60]">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="text-green-500 w-10 h-10" />
+          </div>
+          <h2 className="text-2xl font-bold text-slate-800 mb-2">¡Solicitud Registrada!</h2>
+          <p className="text-sm text-slate-500 mb-6">La solicitud ha sido enviada a aprobación</p>
+          
+          <div className="bg-slate-50 rounded-xl p-4 text-left space-y-3 mb-6">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+              <span className="text-xs font-semibold text-slate-500 uppercase">Código:</span>
+              <span className="font-bold text-emerald-700">{solicitudGuardada.codigoSolicitud}</span>
+            </div>
+            <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+              <span className="text-xs font-semibold text-slate-500 uppercase">Monto:</span>
+              <span className="font-bold text-slate-800">S/ {parseFloat(solicitudGuardada.montoSolicitado).toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+              <span className="text-xs font-semibold text-slate-500 uppercase">Enviado a:</span>
+              <span className="font-bold text-slate-800">{solicitudGuardada.montoSolicitado > 1500 ? 'Gerente' : 'Administrador de Créditos'}</span>
+            </div>
+            <div className="flex justify-between items-center pt-1">
+              <span className="text-xs font-semibold text-slate-500 uppercase">Estado:</span>
+              <span className="font-bold text-amber-600">Pendiente de Evaluación</span>
+            </div>
+          </div>
+
+          <button 
+            onClick={() => {
+              setSolicitudGuardada(null);
+              onSaveSuccess();
+            }} 
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-colors shadow-sm flex justify-center gap-2 items-center"
+          >
+            <CheckCircle size={18} /> Entendido
+          </button>
+        </div>
+      ) : (
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[95vh] flex flex-col relative overflow-hidden">
         
         {/* HEADER */}
@@ -701,6 +740,7 @@ const FormularioSolicitudModal = ({ onClose, onSaveSuccess }) => {
         </div>
 
       </div>
+      )}
     </div>
   );
 };
