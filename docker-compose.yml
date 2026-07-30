@@ -8,7 +8,7 @@ services:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: bd_ludi_financiera
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       # Montar el script SQL para que MySQL lo ejecute al iniciar por primera vez
       - ./schema_y_datos.sql:/docker-entrypoint-initdb.d/init.sql
