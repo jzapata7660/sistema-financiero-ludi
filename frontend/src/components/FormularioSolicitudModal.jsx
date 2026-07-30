@@ -485,7 +485,6 @@ const FormularioSolicitudModal = ({ onClose, onSaveSuccess }) => {
                   <div className="col-span-1">
                     <label className="text-[11px] font-bold text-slate-800 block mb-1.5">Monto Solicitado (S/) *</label>
                     <input type="number" className="w-full p-3 border border-gray-200 rounded-lg font-bold text-[15px] focus:ring-2 focus:ring-blue-500 outline-none" value={condiciones.monto} onChange={e => setCondiciones({...condiciones, monto: parseFloat(e.target.value) || ''})} />
-                    <p className="text-[10px] text-gray-400 mt-1.5 font-medium">Entre S/ 200 y S/ 5,000</p>
                   </div>
                   <div className="col-span-1">
                     <label className="text-[11px] font-bold text-slate-800 block mb-1.5">Plazo (meses) *</label>

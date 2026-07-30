@@ -255,7 +255,7 @@ VALUES (6, 1, 'Luis', 'Cobranza', 'luis.recuperador@ludi.com', '123456');
 -- Clientes (10 Clientes variados)
 INSERT INTO cliente (dni, nombres, apellidos, telefono, direccion, estado) VALUES 
 ('11111111', 'Ana', 'Torres Silva', '987654321', 'Av. Grau 123, Piura', 'Activo'),
-('22222222', 'Pedro', 'Sanchez Roa', '912345678', 'Calle Lima 456, Castilla', 'Mora'),
+('22222222', 'Pedro', 'Sanchez Roa', '912345678', 'Calle Lima 456, Castilla', 'Activo'),
 ('33333333', 'Maria', 'Lopez Diaz', '923456789', 'Urb. Miraflores 789, Piura', 'Activo'),
 ('44444444', 'Jorge', 'Gomez Ruiz', '934567890', 'Av. Sanchez Cerro 102, Piura', 'Activo'),
 ('55555555', 'Elena', 'Castro Vega', '945678901', 'Calle Cuzco 345, Catacaos', 'Activo'),

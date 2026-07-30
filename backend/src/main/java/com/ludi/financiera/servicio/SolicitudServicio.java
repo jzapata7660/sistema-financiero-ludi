@@ -70,51 +70,91 @@ public class SolicitudServicio {
         return solicitud;
     }
 
-    private void generarCronograma(SolicitudCredito solicitud) {
-        double capital = solicitud.getMontoSolicitado();
-        double tasaMensual = solicitud.getTasaInteres() / 100.0;
-        int plazo = solicitud.getPlazoMeses();
+    private CronogramaPagos calcularCuotasCronograma(double capital, double tasaMensualPorcentaje, int plazoMeses, String modalidadPago) {
+        double tasaPeriodo = tasaMensualPorcentaje / 100.0;
+        int numCuotas = plazoMeses;
+        int diasIncremento = 30;
 
-        // Calcular cuota mensual con fórmula de amortización francesa
-        double cuotaMensual;
-        if (tasaMensual == 0) {
-            cuotaMensual = capital / plazo;
-        } else {
-            cuotaMensual = capital * (tasaMensual * Math.pow(1 + tasaMensual, plazo))
-                    / (Math.pow(1 + tasaMensual, plazo) - 1);
+        if ("Quincenal".equalsIgnoreCase(modalidadPago)) {
+            numCuotas = plazoMeses * 2;
+            tasaPeriodo = tasaPeriodo / 2;
+            diasIncremento = 15;
+        } else if ("Semanal".equalsIgnoreCase(modalidadPago)) {
+            numCuotas = plazoMeses * 4;
+            tasaPeriodo = tasaPeriodo / 4;
+            diasIncremento = 7;
+        } else if ("Diario".equalsIgnoreCase(modalidadPago)) {
+            numCuotas = plazoMeses * 30;
+            tasaPeriodo = tasaPeriodo / 30;
+            diasIncremento = 1;
         }
 
-        double totalPagar = cuotaMensual * plazo;
+        double cuotaPeriodo;
+        if (tasaPeriodo == 0) {
+            cuotaPeriodo = capital / numCuotas;
+        } else {
+            cuotaPeriodo = capital * (tasaPeriodo * Math.pow(1 + tasaPeriodo, numCuotas))
+                    / (Math.pow(1 + tasaPeriodo, numCuotas) - 1);
+        }
+
+        double totalPagar = cuotaPeriodo * numCuotas;
         double totalInteres = totalPagar - capital;
 
         CronogramaPagos cronograma = new CronogramaPagos();
-        cronograma.setSolicitud(solicitud);
         cronograma.setTotalCapital(Math.round(capital * 100.0) / 100.0);
         cronograma.setTotalInteres(Math.round(totalInteres * 100.0) / 100.0);
         cronograma.setTotalPagar(Math.round(totalPagar * 100.0) / 100.0);
-        cronograma = cronogramaRepositorio.save(cronograma);
 
-        // Generar cuotas individuales
         List<Cuota> cuotas = new ArrayList<>();
         double saldo = capital;
-        LocalDate fechaVencimiento = LocalDate.now().plusMonths(1);
+        LocalDate fechaVencimiento = LocalDate.now();
 
-        for (int i = 1; i <= plazo; i++) {
-            double interesCuota = saldo * tasaMensual;
-            double capitalCuota = cuotaMensual - interesCuota;
+        if ("Mensual".equalsIgnoreCase(modalidadPago) || modalidadPago == null) {
+            fechaVencimiento = fechaVencimiento.plusMonths(1);
+        } else {
+            fechaVencimiento = fechaVencimiento.plusDays(diasIncremento);
+        }
+
+        for (int i = 1; i <= numCuotas; i++) {
+            double interesCuota = saldo * tasaPeriodo;
+            double capitalCuota = cuotaPeriodo - interesCuota;
 
             Cuota cuota = new Cuota();
-            cuota.setCronograma(cronograma);
             cuota.setNumeroCuota(i);
             cuota.setMontoCapital(Math.round(capitalCuota * 100.0) / 100.0);
             cuota.setMontoInteres(Math.round(interesCuota * 100.0) / 100.0);
-            cuota.setMontoTotal(Math.round(cuotaMensual * 100.0) / 100.0);
+            cuota.setMontoTotal(Math.round(cuotaPeriodo * 100.0) / 100.0);
             cuota.setFechaVencimiento(fechaVencimiento);
             cuota.setEstado("PENDIENTE");
 
             cuotas.add(cuota);
             saldo -= capitalCuota;
-            fechaVencimiento = fechaVencimiento.plusMonths(1);
+
+            if ("Mensual".equalsIgnoreCase(modalidadPago) || modalidadPago == null) {
+                fechaVencimiento = fechaVencimiento.plusMonths(1);
+            } else {
+                fechaVencimiento = fechaVencimiento.plusDays(diasIncremento);
+            }
+        }
+
+        cronograma.setCuotas(cuotas);
+        return cronograma;
+    }
+
+    private void generarCronograma(SolicitudCredito solicitud) {
+        CronogramaPagos cronogramaCalculado = calcularCuotasCronograma(
+                solicitud.getMontoSolicitado(),
+                solicitud.getTasaInteres(),
+                solicitud.getPlazoMeses(),
+                solicitud.getModalidadPago()
+        );
+
+        cronogramaCalculado.setSolicitud(solicitud);
+        CronogramaPagos cronogramaGuardado = cronogramaRepositorio.save(cronogramaCalculado);
+
+        List<Cuota> cuotas = cronogramaCalculado.getCuotas();
+        for (Cuota c : cuotas) {
+            c.setCronograma(cronogramaGuardado);
         }
 
         cuotaRepositorio.saveAll(cuotas);
@@ -172,54 +212,12 @@ public class SolicitudServicio {
     }
     
     public CronogramaPagos previsualizarCronograma(SolicitudRequest req) {
-        SolicitudCredito mockSolicitud = new SolicitudCredito();
-        mockSolicitud.setMontoSolicitado(req.getMonto());
-        mockSolicitud.setPlazoMeses(req.getPlazoMeses());
-        mockSolicitud.setTasaInteres(req.getTasaInteres());
-        mockSolicitud.setModalidadPago(req.getModalidadPago());
-
-        double capital = mockSolicitud.getMontoSolicitado();
-        double tasaMensual = mockSolicitud.getTasaInteres() / 100.0;
-        int plazo = mockSolicitud.getPlazoMeses();
-
-        double cuotaMensual;
-        if (tasaMensual == 0) {
-            cuotaMensual = capital / plazo;
-        } else {
-            cuotaMensual = capital * (tasaMensual * Math.pow(1 + tasaMensual, plazo))
-                    / (Math.pow(1 + tasaMensual, plazo) - 1);
-        }
-
-        double totalPagar = cuotaMensual * plazo;
-        double totalInteres = totalPagar - capital;
-
-        CronogramaPagos cronograma = new CronogramaPagos();
-        cronograma.setTotalCapital(Math.round(capital * 100.0) / 100.0);
-        cronograma.setTotalInteres(Math.round(totalInteres * 100.0) / 100.0);
-        cronograma.setTotalPagar(Math.round(totalPagar * 100.0) / 100.0);
-
-        List<Cuota> cuotas = new ArrayList<>();
-        double saldo = capital;
-        LocalDate fechaVencimiento = LocalDate.now().plusMonths(1);
-
-        for (int i = 1; i <= plazo; i++) {
-            double interesCuota = saldo * tasaMensual;
-            double capitalCuota = cuotaMensual - interesCuota;
-
-            Cuota cuota = new Cuota();
-            cuota.setNumeroCuota(i);
-            cuota.setMontoCapital(Math.round(capitalCuota * 100.0) / 100.0);
-            cuota.setMontoInteres(Math.round(interesCuota * 100.0) / 100.0);
-            cuota.setMontoTotal(Math.round(cuotaMensual * 100.0) / 100.0);
-            cuota.setFechaVencimiento(fechaVencimiento);
-            cuota.setEstado("PENDIENTE");
-
-            cuotas.add(cuota);
-            saldo -= capitalCuota;
-            fechaVencimiento = fechaVencimiento.plusMonths(1);
-        }
-        cronograma.setCuotas(cuotas); // Asumiendo que CronogramaPagos tiene setCuotas()
-        return cronograma;
+        return calcularCuotasCronograma(
+                req.getMonto(),
+                req.getTasaInteres(),
+                req.getPlazoMeses(),
+                req.getModalidadPago()
+        );
     }
 
     public List<SolicitudCredito> listarPorEstado(String estado, Integer usuarioId) {
