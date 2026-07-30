@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, AlertTriangle, FileText, Search, UserPlus, Eye, CheckCircle, Pencil, Trash2, UserX } from 'lucide-react';
+import { Users, AlertTriangle, FileText, Search, UserPlus, Eye, CheckCircle, Pencil, Trash2, UserX, UserCheck, AlertCircle } from 'lucide-react';
 import { apiCliente } from '../services/apiCliente';
 import ModalClienteRegistro from '../components/ModalClienteRegistro';
 import ModalClienteDetalle from '../components/ModalClienteDetalle';
@@ -16,6 +16,10 @@ const ClientesView = () => {
   const [isDetalleModalOpen, setIsDetalleModalOpen] = useState(false);
   const [selectedCliente, setSelectedCliente] = useState(null);
   const [clienteAEditar, setClienteAEditar] = useState(null);
+  
+  // Custom Confirm Modal State
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [confirmActionData, setConfirmActionData] = useState(null);
 
   useEffect(() => {
     cargarClientes();
@@ -48,16 +52,28 @@ const ClientesView = () => {
     setIsRegistroModalOpen(true);
   };
 
-  const handleDesactivarCliente = async (id, nombres, apellidos) => {
-    if (window.confirm(`¿Está seguro que desea desactivar/suspender a ${nombres} ${apellidos}?`)) {
-      try {
-        await apiCliente.eliminarCliente(id);
-        cargarClientes();
-      } catch (err) {
-        console.error("Error desactivando cliente:", err);
-        const errorMessage = err.response?.data?.message || "No se pudo desactivar el cliente.";
-        alert(`Error: ${errorMessage}`);
+  const handleConfirmPrompt = (cliente, actionType) => {
+    setConfirmActionData({ cliente, actionType });
+    setIsConfirmModalOpen(true);
+  };
+
+  const handleConfirmAction = async () => {
+    if (!confirmActionData) return;
+    const { cliente, actionType } = confirmActionData;
+    
+    try {
+      if (actionType === 'desactivar') {
+        await apiCliente.eliminarCliente(cliente.idCliente);
+      } else {
+        await apiCliente.activarCliente(cliente.idCliente);
       }
+      setIsConfirmModalOpen(false);
+      setConfirmActionData(null);
+      cargarClientes();
+    } catch (err) {
+      console.error(`Error al ${actionType} cliente:`, err);
+      const errorMessage = err.response?.data?.message || `No se pudo ${actionType} el cliente.`;
+      alert(`Error: ${errorMessage}`);
     }
   };
 
@@ -74,7 +90,10 @@ const ClientesView = () => {
     }
   };
 
-  const conteoActivos = clientes.filter(c => c.estado?.toLowerCase() === 'activo').length;
+  const conteoSinMora = clientes.filter(c => {
+    const estado = c.estado?.toLowerCase();
+    return estado === 'activo' || estado === 'inactivo';
+  }).length;
   const conteoEnRiesgo = clientes.filter(c => c.estado?.toLowerCase() === 'en riesgo').length;
   const conteoMora = clientes.filter(c => c.estado?.toLowerCase() === 'mora').length;
 
@@ -104,7 +123,7 @@ const ClientesView = () => {
 
         <div className="bg-white rounded-xl p-5 border-l-4 border-emerald-500 shadow-sm flex flex-col justify-between">
           <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Sin Mora</p>
-          <p className="text-3xl font-bold text-slate-800">{conteoActivos}</p>
+          <p className="text-3xl font-bold text-slate-800">{conteoSinMora}</p>
         </div>
 
         <div className="bg-white rounded-xl p-5 border-l-4 border-amber-500 shadow-sm flex flex-col justify-between">
@@ -202,13 +221,24 @@ const ClientesView = () => {
                       >
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
-                      <button
-                        onClick={() => handleDesactivarCliente(cliente.idCliente, cliente.nombres, cliente.apellidos)}
-                        className="inline-flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
-                        title="Desactivar cliente"
-                      >
-                        <UserX className="w-3.5 h-3.5" />
-                      </button>
+                      
+                      {cliente.estado?.toLowerCase() === 'inactivo' ? (
+                        <button
+                          onClick={() => handleConfirmPrompt(cliente, 'activar')}
+                          className="inline-flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+                          title="Activar cliente"
+                        >
+                          <UserCheck className="w-3.5 h-3.5" />
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleConfirmPrompt(cliente, 'desactivar')}
+                          className="inline-flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+                          title="Desactivar cliente"
+                        >
+                          <UserX className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -235,6 +265,37 @@ const ClientesView = () => {
         onClose={() => setIsDetalleModalOpen(false)}
         cliente={selectedCliente}
       />
+
+      {/* Confirm Action Modal */}
+      {isConfirmModalOpen && confirmActionData && (
+        <div className="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 flex flex-col items-center text-center">
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${confirmActionData.actionType === 'activar' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
+              <AlertCircle className="w-8 h-8" />
+            </div>
+            <h2 className="text-xl font-bold text-slate-800 mb-2">
+              ¿{confirmActionData.actionType === 'activar' ? 'Activar' : 'Desactivar'} Cliente?
+            </h2>
+            <p className="text-sm text-slate-500 mb-6">
+              ¿Está seguro que desea {confirmActionData.actionType} a <span className="font-bold text-slate-700">{confirmActionData.cliente.nombres} {confirmActionData.cliente.apellidos}</span>?
+            </p>
+            <div className="flex gap-3 w-full">
+              <button
+                onClick={() => setIsConfirmModalOpen(false)}
+                className="flex-1 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold rounded-xl transition-colors border border-slate-200"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmAction}
+                className={`flex-1 py-2.5 text-white font-semibold rounded-xl transition-colors shadow-sm ${confirmActionData.actionType === 'activar' ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-rose-500 hover:bg-rose-600'}`}
+              >
+                Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

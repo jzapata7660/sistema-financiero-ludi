@@ -36,5 +36,10 @@ export const apiCliente = {
   eliminarCliente: async (id) => {
     const response = await api.delete(`/clientes/${id}`);
     return response.data;
+  },
+
+  activarCliente: async (id) => {
+    const response = await api.put(`/clientes/activar/${id}`);
+    return response.data;
   }
 };

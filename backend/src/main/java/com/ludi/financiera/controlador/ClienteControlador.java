@@ -51,4 +51,10 @@ public class ClienteControlador {
         clienteServicio.eliminarCliente(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/activar/{id}")
+    public ResponseEntity<Void> activarCliente(@PathVariable Integer id) {
+        clienteServicio.activarCliente(id);
+        return ResponseEntity.noContent().build();
+    }
 }

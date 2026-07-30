@@ -3,6 +3,7 @@ package com.ludi.financiera.servicio;
 import com.ludi.financiera.entidad.Cliente;
 import com.ludi.financiera.dto.ClienteResumenDTO;
 import com.ludi.financiera.repositorio.ClienteRepositorio;
+import com.ludi.financiera.repositorio.CuotaRepositorio;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ import java.util.List;
 public class ClienteServicio {
 
     private final ClienteRepositorio clienteRepositorio;
+    private final CuotaRepositorio cuotaRepositorio;
 
     public Cliente buscarPorDni(String dni) {
         return clienteRepositorio.findByDni(dni)
@@ -105,6 +107,24 @@ public class ClienteServicio {
             clienteRepositorio.save(clienteExistente);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al desactivar el cliente.");
+        }
+    }
+
+    public void activarCliente(Integer id) {
+        Cliente clienteExistente = clienteRepositorio.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "No se encontró el cliente con ID: " + id));
+
+        try {
+            Long cuotasVencidas = cuotaRepositorio.countCuotasVencidasByClienteId(id);
+            if (cuotasVencidas != null && cuotasVencidas > 0) {
+                clienteExistente.setEstado("Mora");
+            } else {
+                clienteExistente.setEstado("Activo");
+            }
+            clienteRepositorio.save(clienteExistente);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al activar el cliente.");
         }
     }
 }

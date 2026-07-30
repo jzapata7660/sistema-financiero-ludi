@@ -8,6 +8,10 @@ public interface CuotaRepositorio extends JpaRepository<Cuota, Integer> {
     List<Cuota> findByCronogramaIdCronograma(Integer cronogramaId);
     List<Cuota> findByCronogramaIdCronogramaAndEstado(Integer cronogramaId, String estado);
 
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(c) FROM Cuota c WHERE c.cronograma.solicitud.cliente.idCliente = :clienteId AND c.estado = 'VENCIDA'")
+    Long countCuotasVencidasByClienteId(@org.springframework.data.repository.query.Param("clienteId") Integer clienteId);
+
+
     @org.springframework.data.jpa.repository.Query("SELECT COUNT(DISTINCT c.cronograma.idCronograma) FROM Cuota c WHERE c.cronograma.solicitud.estado != 'EN RECUPERACION' AND c.estado = 'PENDIENTE' AND c.fechaVencimiento = CURRENT_DATE")
     Long countPorCobrarHoy();
 
