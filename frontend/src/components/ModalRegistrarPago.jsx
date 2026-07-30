@@ -93,13 +93,13 @@ const ModalRegistrarPago = ({ isOpen, onClose, cuota, onPagoRegistrado }) => {
             <input 
               type="number" 
               step="0.01" 
-              max={saldoPendiente}
+              max={totalSugerido}
               className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 outline-none"
               value={montoRecibido}
               onChange={e => {
                 let val = parseFloat(e.target.value);
-                if (val > saldoPendiente) {
-                  setMontoRecibido(saldoPendiente);
+                if (val > totalSugerido) {
+                  setMontoRecibido(totalSugerido);
                 } else {
                   setMontoRecibido(e.target.value);
                 }

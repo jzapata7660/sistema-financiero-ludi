@@ -140,7 +140,8 @@ public class CobranzaServicio {
         double montoRecibido = Math.round(request.getMontoRecibido() * 100.0) / 100.0;
 
         double moraCalculada = 0.0;
-        if (montoRecibido > saldoPendiente) {
+        long diasAtraso = ChronoUnit.DAYS.between(cuota.getFechaVencimiento(), LocalDate.now());
+        if (diasAtraso > 0 && montoRecibido > saldoPendiente) {
             moraCalculada = Math.round((montoRecibido - saldoPendiente) * 100.0) / 100.0;
         }
 
@@ -162,7 +163,8 @@ public class CobranzaServicio {
         pagoRepositorio.save(pago);
 
         // 3. Actualizar estado de cuota si se completó
-        double sumaTotal = totalPagadoAnterior + request.getMontoRecibido();
+        // Usamos montoRecibido (ya redondeado) para evitar errores de punto flotante
+        double sumaTotal = Math.round((totalPagadoAnterior + montoRecibido) * 100.0) / 100.0;
 
         if (sumaTotal >= cuota.getMontoTotal()) {
             cuota.setEstado("PAGADA");
