@@ -226,15 +226,30 @@ const ModalCobranza = ({ isOpen, onClose, cuota, onRegistrarPago, onActionComple
             <h3 className="text-xs font-bold text-slate-500 mb-3 flex items-center gap-2 uppercase tracking-wider">
               <Clock className="w-4 h-4" /> Historial de Gestión
             </h3>
-            <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-              {/* Aquí se listaría el historial real. Ponemos un mock si está vacío. */}
-              <div className="flex items-start gap-3">
-                <Phone className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
-                <div>
-                  <p className="text-sm font-semibold text-slate-800">Llamada realizada - 2026-01-14 10:30</p>
-                  <p className="text-xs text-slate-500 mt-0.5">El cliente indica que se acercará a la agencia por la tarde para cancelar.</p>
-                </div>
-              </div>
+            <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 flex flex-col gap-4">
+              {loadingHistory ? (
+                 <p className="text-sm text-slate-500">Cargando historial...</p>
+              ) : historial.length === 0 ? (
+                 <p className="text-sm text-slate-500">No hay historial de gestión registrado.</p>
+              ) : (
+                historial.map((accion) => (
+                  <div key={accion.idAccion} className="flex items-start gap-3 border-b border-slate-200 pb-3 last:border-0 last:pb-0">
+                    {accion.tipoAccion === 'Llamada' ? (
+                       <Phone className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
+                    ) : accion.tipoAccion === 'Visita' ? (
+                       <MapPin className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
+                    ) : (
+                       <CheckCircle className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                    )}
+                    <div>
+                      <p className="text-sm font-semibold text-slate-800">
+                        {accion.tipoAccion} realizada - {new Date(accion.fechaAccion).toLocaleString()}
+                      </p>
+                      <p className="text-xs text-slate-500 mt-0.5">{accion.resultado}</p>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </section>
 
