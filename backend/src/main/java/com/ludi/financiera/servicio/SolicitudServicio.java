@@ -126,7 +126,6 @@ public class SolicitudServicio {
             cuota.setMontoTotal(Math.round(cuotaPeriodo * 100.0) / 100.0);
             cuota.setFechaVencimiento(fechaVencimiento);
             cuota.setEstado("PENDIENTE");
-            cuota.setCronograma(cronograma);
 
             cuotas.add(cuota);
             saldo -= capitalCuota;
@@ -151,7 +150,14 @@ public class SolicitudServicio {
         );
 
         cronogramaCalculado.setSolicitud(solicitud);
-        cronogramaRepositorio.save(cronogramaCalculado);
+        CronogramaPagos cronogramaGuardado = cronogramaRepositorio.save(cronogramaCalculado);
+
+        List<Cuota> cuotas = cronogramaCalculado.getCuotas();
+        for (Cuota c : cuotas) {
+            c.setCronograma(cronogramaGuardado);
+        }
+
+        cuotaRepositorio.saveAll(cuotas);
     }
 
     @Transactional
