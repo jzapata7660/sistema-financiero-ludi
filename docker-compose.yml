@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db:
     image: mysql:8.0
@@ -8,12 +6,34 @@ services:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: bd_ludi_financiera
     ports:
-      - "3306:3306"
+      # Cambiado a 3307 para evitar conflicto con XAMPP (que usa 3306)
+      - "3307:3306"
     volumes:
       # Montar el script SQL para que MySQL lo ejecute al iniciar por primera vez
       - ./schema_y_datos.sql:/docker-entrypoint-initdb.d/init.sql
       # Volumen para persistir los datos
       - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: financiera_phpmyadmin
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: root
+    ports:
+      # Visualizador disponible en http://localhost:8081
+      - "8081:80"
 
   backend:
     build:
@@ -21,7 +41,8 @@ services:
       dockerfile: Dockerfile
     container_name: financiera_backend
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     ports:
       - "8080:8080"
     environment:
