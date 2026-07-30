@@ -50,11 +50,17 @@ public class ClienteServicio {
             estadoCalculado = c.getEstado();
         }
 
-        // This would be replaced with actual lookup if HistorialCrediticio is linked.
-        // For simplicity we return defaults if history is null.
-        dto.setScoreCrediticio(100);
-        dto.setCreditosAnteriores(0);
-        dto.setUltimaOperacion(java.time.LocalDate.now());
+        // Leer del HistorialCrediticio si existe
+        if (c.getHistorialCrediticio() != null) {
+            com.ludi.financiera.entidad.HistorialCrediticio h = c.getHistorialCrediticio();
+            dto.setScoreCrediticio(h.getScoreCrediticio() != null ? h.getScoreCrediticio() : 100);
+            dto.setCreditosAnteriores(h.getCreditosAnteriores() != null ? h.getCreditosAnteriores() : 0);
+            dto.setUltimaOperacion(h.getUltimaOperacion());
+        } else {
+            dto.setScoreCrediticio(100);
+            dto.setCreditosAnteriores(0);
+            dto.setUltimaOperacion(null);
+        }
 
         dto.setEstado(estadoCalculado);
         return dto;

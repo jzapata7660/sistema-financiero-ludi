@@ -44,7 +44,7 @@ const ModalClienteDetalle = ({ isOpen, onClose, cliente }) => {
           <div className="grid grid-cols-4 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
             <div>
               <p className="text-xs text-slate-500 mb-1">Última Operación</p>
-              <p className="text-sm font-bold text-slate-800">{cliente.ultimaOperacion}</p>
+              <p className="text-sm font-bold text-slate-800">{cliente.ultimaOperacion || '-'}</p>
             </div>
             <div>
               <p className="text-xs text-slate-500 mb-1">Score</p>
@@ -77,30 +77,42 @@ const ModalClienteDetalle = ({ isOpen, onClose, cliente }) => {
             </div>
           </section>
 
-          {/* HISTORIAL CREDITICIO (Mockup) */}
+          {/* HISTORIAL CREDITICIO */}
           <section>
             <h3 className="text-xs font-bold text-slate-500 mb-3 flex items-center gap-2 uppercase tracking-wider text-purple-600">
               <FileText className="w-4 h-4" /> HISTORIAL CREDITICIO
             </h3>
             <div className="space-y-3">
-              <div className="p-4 border border-slate-200 rounded-xl flex items-center gap-4">
-                <div className="bg-blue-100 p-2 rounded-full">
-                  <CheckCircle className="w-5 h-5 text-blue-600" />
+              {cliente.creditosAnteriores > 0 || cliente.ultimaOperacion ? (
+                <>
+                  {cliente.ultimaOperacion && (
+                    <div className="p-4 border border-slate-200 rounded-xl flex items-center gap-4">
+                      <div className="bg-blue-100 p-2 rounded-full">
+                        <CheckCircle className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="font-bold text-slate-800 text-sm">Última Operación Registrada</p>
+                        <p className="text-xs text-slate-500">{cliente.ultimaOperacion}</p>
+                      </div>
+                    </div>
+                  )}
+                  {cliente.creditosAnteriores > 0 && (
+                    <div className="p-4 border border-slate-200 rounded-xl flex items-center gap-4">
+                      <div className="bg-emerald-100 p-2 rounded-full">
+                        <FileText className="w-5 h-5 text-emerald-600" />
+                      </div>
+                      <div>
+                        <p className="font-bold text-slate-800 text-sm">Créditos Anteriores</p>
+                        <p className="text-xs text-slate-500">{cliente.creditosAnteriores} créditos registrados en el sistema</p>
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="p-4 border border-slate-200 rounded-xl text-center bg-slate-50">
+                  <p className="text-sm text-slate-500">No hay historial crediticio registrado.</p>
                 </div>
-                <div>
-                  <p className="font-bold text-slate-800 text-sm">Solicitud - {cliente.ultimaOperacion}</p>
-                  <p className="text-xs text-slate-500">Crédito aprobado</p>
-                </div>
-              </div>
-              <div className="p-4 border border-slate-200 rounded-xl flex items-center gap-4">
-                <div className="bg-blue-100 p-2 rounded-full">
-                  <CheckCircle className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="font-bold text-slate-800 text-sm">Pago - {cliente.ultimaOperacion}</p>
-                  <p className="text-xs text-slate-500">Cuota registrada</p>
-                </div>
-              </div>
+              )}
             </div>
           </section>
 
