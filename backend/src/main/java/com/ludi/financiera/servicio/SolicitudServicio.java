@@ -150,13 +150,13 @@ public class SolicitudServicio {
         );
 
         cronogramaCalculado.setSolicitud(solicitud);
-        CronogramaPagos cronogramaGuardado = cronogramaRepositorio.save(cronogramaCalculado);
 
         List<Cuota> cuotas = cronogramaCalculado.getCuotas();
         for (Cuota c : cuotas) {
-            c.setCronograma(cronogramaGuardado);
+            c.setCronograma(cronogramaCalculado);
         }
 
+        CronogramaPagos cronogramaGuardado = cronogramaRepositorio.save(cronogramaCalculado);
         cuotaRepositorio.saveAll(cuotas);
     }
 
