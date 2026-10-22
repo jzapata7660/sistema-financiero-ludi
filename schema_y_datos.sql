@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS negocio (
 -- Tabla de Solicitud de Crédito
 CREATE TABLE IF NOT EXISTS solicitud_credito (
     id_solicitud INT AUTO_INCREMENT PRIMARY KEY,
-    codigo_solicitud VARCHAR(20) UNIQUE NOT NULL,
+    codigo_solicitud VARCHAR(50) UNIQUE NOT NULL, -- Ampliado para soportar prefijos y timestamps largos
     cliente_id INT NOT NULL,
     negocio_id INT NOT NULL,
     analista_id INT NOT NULL,

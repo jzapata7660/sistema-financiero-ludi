@@ -18,7 +18,7 @@ public class SolicitudCredito {
     @Column(name = "id_solicitud")
     private Integer idSolicitud;
 
-    @Column(name = "codigo_solicitud", unique = true, nullable = false, length = 20)
+    @Column(name = "codigo_solicitud", unique = true, nullable = false, length = 50)
     private String codigoSolicitud;
 
     @ManyToOne(fetch = FetchType.EAGER)
