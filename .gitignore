@@ -20,6 +20,18 @@ frontend/dist/
 frontend/.vite/
 
 # ========================
+# Environment / Secrets
+# ========================
+.env
+.env.local
+.env.*.local
+frontend/.env
+frontend/.env.local
+backend/.env
+!.env.example
+!frontend/.env.example
+
+# ========================
 # IDEs
 # ========================
 .idea/
