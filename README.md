@@ -1,78 +1,138 @@
 # Sistema Financiero Ludi
 
-Sistema de gestión financiera desarrollado con **Spring Boot**, **React**, **MySQL** y **Docker**.
+Sistema web para gestionar clientes, negocios, créditos, desembolsos, pagos y cobranzas de la financiera Ludi.
 
-Permite gestionar clientes, negocios, solicitudes de crédito, autorizaciones, desembolsos, pagos, cobranza y usuarios según su rol.
+## Tecnologías utilizadas
 
-## Tecnologías
+- **Backend:** Java 17 y Spring Boot.
+- **Frontend:** React y Vite.
+- **Base de datos:** MySQL 8.
+- **Contenedores:** Docker y Docker Compose.
+- **Comunicación y seguridad:** Axios y JWT.
 
-- Java 17
-- Spring Boot
-- React + Vite
-- MySQL 8
-- Docker y Docker Compose
+## Requisitos previos
 
-## Requisitos
+Para ejecutar el proyecto mediante Docker, necesitas tener instalado:
 
-Para ejecutar localmente:
+- Docker.
+- Docker Compose.
 
-- Java 17
-- Node.js y npm
-- MySQL 8
-- Maven
+## Instalación y ejecución con Docker
 
-Para ejecutar con Docker:
-
-- Docker
-- Docker Compose
-
-## Ejecución local
-
-### 1. Base de datos
-
-Crear la base de datos ejecutando:
+### 1. Clonar el repositorio
 
 ```bash
-mysql -u root -p < schema_y_datos.sql
+git clone https://github.com/jzapata7660/sistema-financiero-ludi.git
+cd sistema-financiero-ludi
 ```
 
-La base de datos se llama:
+### 2. Crear el archivo de configuración
+
+**Linux / macOS:**
+
+```bash
+cp .env.example .env
+```
+
+**Windows PowerShell:**
+
+```powershell
+Copy-Item .env.example .env
+```
+
+### 3. Iniciar la aplicación
+
+```bash
+docker compose up --build
+```
+
+Para ejecutar los servicios en segundo plano:
+
+```bash
+docker compose up --build -d
+```
+
+## Servicios disponibles
+
+Una vez iniciados los contenedores, podrás acceder a los siguientes servicios:
+
+| Servicio | Dirección |
+|---|---|
+| Frontend | http://localhost:5173 |
+| Backend | http://localhost:8080 |
+| phpMyAdmin | http://localhost:8081 |
+| MySQL | localhost:3307 |
+
+> **Nota:** Los puertos pueden modificarse desde el archivo `.env`.
+
+## Configuración del entorno
+
+El archivo `.env.example` contiene las principales variables de configuración:
+
+```env
+DB_ROOT_PASSWORD=
+DB_NAME=bd_ludi_financiera
+DB_USER=root
+DB_HOST_PORT=3307
+
+PHPMYADMIN_PORT=8081
+BACKEND_PORT=8080
+FRONTEND_PORT=5173
+
+VITE_API_URL=http://localhost:8080/api
+```
+
+Para personalizar la configuración, modifica los valores correspondientes en el archivo `.env`.
+
+## Base de datos
+
+La base de datos se inicializa automáticamente al iniciar los contenedores de Docker, utilizando el siguiente archivo SQL:
 
 ```text
-bd_ludi_financiera
+schema_y_datos.sql
 ```
 
-### 2. Backend
+### Reinicializar la base de datos
 
-Configurar la conexión en:
+Si necesitas eliminar los datos existentes y crear nuevamente la base de datos, ejecuta:
 
-```text
-backend/src/main/resources/application.properties
+```bash
+docker compose down -v
+docker compose up --build
 ```
 
-Ejecutar:
+## Usuarios de prueba
+
+El proyecto incluye usuarios de prueba definidos en el archivo `schema_y_datos.sql`.
+
+| Campo | Credencial |
+|---|---|
+| Usuario | ana.analista@ludi.com |
+| Contraseña | 123456 |
+
+> Estas credenciales son únicamente para pruebas y desarrollo.
+
+## Ejecución manual (sin Docker)
+
+También es posible ejecutar el backend y el frontend de manera independiente.
+
+### Backend
+
+**Linux / macOS:**
 
 ```bash
 cd backend
 ./mvnw spring-boot:run
 ```
 
-En Windows:
+**Windows PowerShell:**
 
 ```powershell
 cd backend
 mvnw.cmd spring-boot:run
 ```
 
-Backend disponible en:
-
-```text
-http://localhost:8080
-```
-
-### 3. Frontend
-
-En otra terminal:
+### Frontend
 
 ```bash
 cd frontend
@@ -80,22 +140,16 @@ npm install
 npm run dev
 ```
 
-Frontend disponible en:
+## Ejecución de pruebas
 
-```text
-http://localhost:5173
-```
-
-## Ejecutar pruebas
-
-Backend:
+### Backend
 
 ```bash
 cd backend
 ./mvnw test
 ```
 
-Frontend:
+### Frontend
 
 ```bash
 cd frontend
@@ -103,88 +157,10 @@ npm run lint
 npm run build
 ```
 
-## Ejecución para producción
+## Detener la aplicación
 
-### Backend
-
-Compilar:
-
-```bash
-cd backend
-./mvnw clean package
-```
-
-Ejecutar:
-
-```bash
-java -jar target/financiera-0.0.1-SNAPSHOT.jar
-```
-
-### Frontend
-
-Compilar:
-
-```bash
-cd frontend
-npm run build
-```
-
-Los archivos generados estarán en:
-
-```text
-frontend/dist
-```
-
-Estos archivos pueden servirse mediante Nginx u otro servidor web.
-
-## Ejecución con Docker
-
-Desde la raíz del proyecto:
-
-```bash
-docker compose up --build
-```
-
-Para ejecutarlo en segundo plano:
-
-```bash
-docker compose up --build -d
-```
-
-Servicios disponibles:
-
-| Servicio | URL |
-|---|---|
-| Frontend | http://localhost:5173 |
-| Backend | http://localhost:8080 |
-| phpMyAdmin | http://localhost:8081 |
-| MySQL | localhost:3307 |
-
-Para detener los servicios:
+Para detener los contenedores sin eliminar los datos almacenados:
 
 ```bash
 docker compose down
 ```
-
-Para eliminar también los datos de la base de datos:
-
-```bash
-docker compose down -v
-```
-
-## Usuarios de prueba
-
-Todos los usuarios incluidos en `schema_y_datos.sql` utilizan la contraseña:
-
-```text
-123456
-```
-
-Ejemplo:
-
-```text
-Usuario: ana.analista@ludi.com
-Contraseña: 123456
-```
-
-> Las credenciales incluidas son únicamente para pruebas y deben cambiarse en producción.
